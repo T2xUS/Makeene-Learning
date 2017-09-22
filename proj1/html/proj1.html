@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>proj1_gaussian_known_mean</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-09-22"><meta name="DC.source" content="proj1_gaussian_known_mean.m"><style type="text/css">
+      --><title>ECE414 Makeene Learning - Project 1</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-09-22"><meta name="DC.source" content="proj1.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Binomial Distribution - Random Data Generation</a></li><li><a href="#2">Binomial Distribution - Mean-Squared Errors of ML and CP Estimates</a></li><li><a href="#3">Binomial Distribution - Modeling Posterior Density (Beta Distribution)</a></li><li><a href="#4">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</a></li><li><a href="#5">Gaussian Distribution - Random Data Generation</a></li><li><a href="#6">Gaussian Distribution, Known Variance, Unknown Mean - Mean-Squared Errors of ML and CP Estimates</a></li><li><a href="#7">Gaussian Distribution, Known Variance, Unknown Mean - Modeling Posterior Density (Gaussian Distribution)</a></li><li><a href="#8">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</a></li><li><a href="#9">Gaussian Distribution, Known Mean, Unknown Variance - Mean-Squared Errors of ML and CP Estimates</a></li><li><a href="#10">Gaussian Distribution, Known Mean, Unknown Variance - Modeling Posterior Density (Gamma Distribution)</a></li></ul></div><h2>Binomial Distribution - Random Data Generation<a name="1"></a></h2><pre class="codeinput">clc; clear <span class="string">all</span>; close <span class="string">all</span>;
+  </style></head><body><div class="content"><h1>ECE414 Makeene Learning - Project 1</h1><!--introduction--><pre class="language-matlab">By <span class="string">Jeffrey</span> <span class="string">Shih</span>
+</pre><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Binomial Distribution - Random Data Generation</a></li><li><a href="#2">Binomial Distribution - Mean-Squared Errors of ML and CP Estimates</a></li><li><a href="#3">Binomial Distribution - Modeling Posterior Density (Beta Distribution)</a></li><li><a href="#4">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</a></li><li><a href="#5">Gaussian Distribution - Random Data Generation</a></li><li><a href="#6">Gaussian Distribution, Known Variance, Unknown Mean - Mean-Squared Errors of ML and CP Estimates</a></li><li><a href="#7">Gaussian Distribution, Known Variance, Unknown Mean - Modeling Posterior Density (Gaussian Distribution)</a></li><li><a href="#8">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</a></li><li><a href="#9">Gaussian Distribution, Known Mean, Unknown Variance - Mean-Squared Errors of ML and CP Estimates</a></li><li><a href="#10">Gaussian Distribution, Known Mean, Unknown Variance - Modeling Posterior Density (Gamma Distribution)</a></li></ul></div><h2>Binomial Distribution - Random Data Generation<a name="1"></a></h2><pre class="codeinput">clc; clear <span class="string">all</span>; close <span class="string">all</span>;
 
 <span class="comment">% Binomial distribution parameters</span>
 N = 1:1:100; <span class="comment">% No. of observations, we are interested in various N values</span>
@@ -87,7 +88,7 @@ nTrials = 100;
 <span class="comment">%   (for vectorization purposes)</span>
 <span class="comment">%   - So each COLUMN of the inner matrix represents a different trial for</span>
 <span class="comment">%     the fixed N associated with that matrix</span>
-x = cell(size(N,2),1);
+x = cell(size(N,2),1); <span class="comment">% can just use length(N) for vectors</span>
 <span class="keyword">for</span> i = 1:size(N,2)
     <span class="comment">% Temporary inner matrix</span>
     x_i = [];
@@ -95,7 +96,7 @@ x = cell(size(N,2),1);
     <span class="comment">% Take transpose of output of rand so you get a column vector (trials</span>
     <span class="comment">% are columns)</span>
     <span class="keyword">for</span> j = 1:nTrials
-        x_i = [x_i (rand(1,N(i)) &lt;= p)'];
+        x_i = [x_i (rand(1,N(i))&lt;=p)'];
     <span class="keyword">end</span>
     <span class="comment">% Store the matrix in the cell array</span>
     x{i,1} = x_i; <span class="comment">% USE CURLY BRACES TO REPLACE DATA,</span>
@@ -160,7 +161,7 @@ hold <span class="string">on</span>
     hold <span class="string">on</span>
 <span class="keyword">end</span>
 
-title([<span class="string">'Mean-Squared Error Comparison of ML and CP Estimates of Mean '</span><span class="keyword">...</span>
+title([<span class="string">'Mean-Squared Error Comparison of ML and CP Estimates of Probability of Success '</span><span class="keyword">...</span>
         <span class="string">'for Binomial Distribution '</span>,sprintf(<span class="string">'(No. Trials = %d)'</span>,nTrials)])
 legend(<span class="string">'ML'</span>,<span class="keyword">...</span>
         sprintf(<span class="string">'CP (A=%.3f, B=%.3f)'</span>,a(1),b(1)),<span class="keyword">...</span>
@@ -168,36 +169,57 @@ legend(<span class="string">'ML'</span>,<span class="keyword">...</span>
         sprintf(<span class="string">'CP (A=%.3f, B=%.3f)'</span>,a(3),b(3)),<span class="keyword">...</span>
         sprintf(<span class="string">'CP (A=%.3f, B=%.3f)'</span>,a(4),b(4)))
 xlabel(<span class="string">'N (No. of observations)'</span>)
-ylabel(<span class="string">'Mean-squared Error'</span>)
+ylabel(<span class="string">'Mean-squared Error for Probability of Success'</span>)
 hold <span class="string">off</span>
-</pre><img vspace="5" hspace="5" src="proj1_gaussian_known_mean_01.png" alt=""> <h2>Binomial Distribution - Modeling Posterior Density (Beta Distribution)<a name="3"></a></h2><pre class="codeinput"><span class="comment">% Different probabilities of success, x-axis</span>
+</pre><img vspace="5" hspace="5" src="proj1_01.png" alt=""> <h2>Binomial Distribution - Modeling Posterior Density (Beta Distribution)<a name="3"></a></h2><pre class="codeinput"><span class="comment">% Different probabilities of success, x-axis</span>
 x_vec = 0:0.01:1;
 
 <span class="comment">% Parameter set selector</span>
 s = 1;
 
-<span class="comment">% Capture pdf snapshots into frames for movie function</span>
-<span class="keyword">for</span> i = 1:size(N,2)
-    <span class="comment">% Update parameters</span>
-    A_post = m(i)+a(s);
-    B_post = l(i)+b(s);
-    <span class="comment">% Update distribution</span>
-    p_post = pdf(<span class="string">'beta'</span>,x_vec,A_post,B_post);
-    <span class="comment">% "Plot" graph</span>
-    plot(x_vec,p_post)
-    title(sprintf(<span class="string">'Beta Posterior Density (A_{prior}=%.3f, B_{prior}=%.3f)'</span>,a(s),b(s)))
-    xlabel(<span class="string">'X'</span>)
-    <span class="comment">%ylabel('??')</span>
-    axis([0 1 0 15])
-    legend([<span class="string">'N = '</span> num2str(N(i))])
-    drawnow
-    <span class="comment">% Capture plot frame</span>
-    M(i) = getframe(gcf);
-<span class="keyword">end</span>
+<span class="comment">% Initialize plot</span>
+<span class="comment">% We're plotting both N = 1 and max N so that publish displays 2 graphs</span>
+figure;
+update_plot_beta(1,N,x_vec,s,m,l,a,b);
+f = figure;
+update_plot_beta(length(N),N,x_vec,s,m,l,a,b);
 
-<span class="comment">% Play movie 1 time at 5 fps</span>
-movie(figure,M,1,5)
-</pre><img vspace="5" hspace="5" src="proj1_gaussian_known_mean_02.png" alt=""> <img vspace="5" hspace="5" src="proj1_gaussian_known_mean_03.png" alt=""> <h2>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<a name="4"></a></h2><h2>Gaussian Distribution - Random Data Generation<a name="5"></a></h2><pre class="codeinput">clc; clear <span class="string">all</span>; close <span class="string">all</span>;
+<span class="comment">% Set up slider used to change N</span>
+slider = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'slider'</span>,<span class="string">'Position'</span>,[10 50 20 340],<span class="keyword">...</span>
+              <span class="string">'value'</span>,1,<span class="string">'min'</span>,1,<span class="string">'max'</span>,length(N),<span class="string">'SliderStep'</span>,[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,24,23,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,<span class="string">'1'</span>,<span class="string">'BackgroundColor'</span>,bgcolor);
+slider_label2 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,390,23,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,num2str(length(N)),<span class="string">'BackgroundColor'</span>,bgcolor);
+
+<span class="comment">% Set slider callback to update plot, need to round the slider value</span>
+<span class="comment">% because it might not be an integer</span>
+slider.Callback = @(es,ed) update_plot_beta(round(es.Value),N,x_vec,s,m,l,a,b);
+
+<span class="comment">%{
+</span><span class="comment">% Capture pdf snapshots into frames for movie function
+</span><span class="comment">for i = 1:size(N,2)
+</span><span class="comment">    % Update parameters
+</span><span class="comment">    A_post = m(i)+a(s);
+</span><span class="comment">    B_post = l(i)+b(s);
+</span><span class="comment">    % Update distribution
+</span><span class="comment">    p_post = pdf('beta',x_vec,A_post,B_post);
+</span><span class="comment">    % "Plot" graph
+</span><span class="comment">    plot(x_vec,p_post)
+</span><span class="comment">    title(sprintf('Beta Posterior Density (A_{prior}=%.3f, B_{prior}=%.3f)',a(s),b(s)))
+</span><span class="comment">    xlabel('X')
+</span><span class="comment">    %ylabel('??')
+</span><span class="comment">    axis([0 1 0 15])
+</span><span class="comment">    legend(['N = ' num2str(N(i))])
+</span><span class="comment">end
+</span><span class="comment">
+</span><span class="comment">% Play movie
+</span><span class="comment">nRepeat = 1;
+</span><span class="comment">fps = 15;
+</span><span class="comment">movie(figure,M,nRepeat,fps)
+</span><span class="comment">%}</span>
+</pre><img vspace="5" hspace="5" src="proj1_02.png" alt=""> <img vspace="5" hspace="5" src="proj1_03.png" alt=""> <h2>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<a name="4"></a></h2><h2>Gaussian Distribution - Random Data Generation<a name="5"></a></h2><pre class="codeinput">clc; clear <span class="string">all</span>;
 
 <span class="comment">% Experiment parameters</span>
 N = 1:1:30;
@@ -238,8 +260,8 @@ mu_ML_norm = []; <span class="comment">% need to store ML estimates for CP calc.
 <span class="comment">%mu_ML_norm</span>
 
 <span class="comment">% Normal distribution parameters for prior (4 sets)</span>
-mu_o = [0.1, 1, 2, 8];
-sigma_o = sqrt([0.1, 1, 3, 4]);
+mu_o = [0.1, 1, 2, 5];
+sigma_o = sqrt([0.1, 1, 3, 10]);
 
 <span class="comment">% Calculating MSE of CP estimates</span>
 MSE_CP_norm = []; <span class="comment">% This will be a nParameterSets-by-N matrix (as opposed</span>
@@ -286,58 +308,79 @@ legend(<span class="string">'ML'</span>,<span class="keyword">...</span>
         sprintf(<span class="string">'CP (\\mu_{0}=%.3f, \\sigma_{0}^{2}=%.3f)'</span>,mu_o(3),sigma_o(3)^2),<span class="keyword">...</span><span class="comment">.</span>
         sprintf(<span class="string">'CP (\\mu_{0}=%.3f, \\sigma_{0}^{2}=%.3f)'</span>,mu_o(4),sigma_o(4)^2))
 xlabel(<span class="string">'N (No. of observations)'</span>)
-ylabel(<span class="string">'Mean-squared Error'</span>)
+ylabel(<span class="string">'Mean-squared Error for Mean'</span>)
 hold <span class="string">off</span>
-</pre><img vspace="5" hspace="5" src="proj1_gaussian_known_mean_04.png" alt=""> <h2>Gaussian Distribution, Known Variance, Unknown Mean - Modeling Posterior Density (Gaussian Distribution)<a name="7"></a></h2><pre class="codeinput"><span class="comment">% Different probabilities of success, x-axis</span>
+</pre><img vspace="5" hspace="5" src="proj1_04.png" alt=""> <h2>Gaussian Distribution, Known Variance, Unknown Mean - Modeling Posterior Density (Gaussian Distribution)<a name="7"></a></h2><pre class="codeinput"><span class="comment">% x-axis</span>
 x_vec = -1:0.01:1;
 
 <span class="comment">% Parameter set selector</span>
 s = 1;
 
-<span class="comment">% Capture pdf snapshots into frames for movie function</span>
-<span class="keyword">for</span> i = 1:length(N)
-    <span class="comment">% Update parameters</span>
-    <span class="comment">% Since the update parameter contains the ML estimate, I decided to</span>
-    <span class="comment">% average out the ML estimates for this particular N across all trials,</span>
-    <span class="comment">% not sure if this is the proper way to do it</span>
-    mu_ML_avg = mean(mu_ML_norm(:,i),1);
-    mu_N = sigma^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_o(s) + <span class="keyword">...</span>
-            N(i)*sigma_o(s)^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_ML_avg;
-    sigma_N = (1/sigma_o(s)^2+N(i)/sigma^2)^(-1/2); <span class="comment">% -1/2 power b/c sqrt</span>
-    <span class="comment">% Update distribution</span>
-    p_post = pdf(<span class="string">'normal'</span>,x_vec,mu_N,sigma_N);
-    <span class="comment">% "Plot" graph</span>
-    plot(x_vec,p_post)
-    title(sprintf(<span class="string">'Gaussian Posterior Density (\\mu_{0}=%.3f, \\sigma_{0}=%.3f)'</span>,mu_o(s),sigma_o(s)))
-    xlabel(<span class="string">'X'</span>)
-    axis([-1 1 0 3])
-    legend([<span class="string">'N = '</span> num2str(N(i))])
-    drawnow
-    <span class="comment">% Capture plot frame</span>
-    M(i) = getframe(gcf);
-<span class="keyword">end</span>
+<span class="comment">% Initialize plot</span>
+figure;
+update_plot_gaussian(1,N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
+f = figure;
+update_plot_gaussian(length(N),N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
 
-<span class="comment">% Play movie 1 time at 5 fps</span>
-movie(figure,M,1,5)
-</pre><img vspace="5" hspace="5" src="proj1_gaussian_known_mean_05.png" alt=""> <img vspace="5" hspace="5" src="proj1_gaussian_known_mean_06.png" alt=""> <h2>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<a name="8"></a></h2><h2>Gaussian Distribution, Known Mean, Unknown Variance - Mean-Squared Errors of ML and CP Estimates<a name="9"></a></h2><pre class="codeinput"><span class="comment">% Calculating MSE of ML estimates (just the sample variance)</span>
-<span class="comment">% See P100, sigma_mL^2 = sum(x_n - mu)^2/N</span>
+<span class="comment">% Set up slider used to change N</span>
+slider = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'slider'</span>,<span class="string">'Position'</span>,[10 50 20 340],<span class="keyword">...</span>
+              <span class="string">'value'</span>,1,<span class="string">'min'</span>,1,<span class="string">'max'</span>,length(N),<span class="string">'SliderStep'</span>,[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,24,23,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,<span class="string">'1'</span>,<span class="string">'BackgroundColor'</span>,bgcolor);
+slider_label2 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,390,23,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,num2str(length(N)),<span class="string">'BackgroundColor'</span>,bgcolor);
+
+<span class="comment">% Set slider callback to update plot</span>
+slider.Callback = @(es,ed) update_plot_gaussian(round(es.Value),N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o);
+
+<span class="comment">%{
+</span><span class="comment">% Capture pdf snapshots into frames for movie function
+</span><span class="comment">for i = 1:length(N)
+</span><span class="comment">    % Update parameters
+</span><span class="comment">    % Since the update parameter contains the ML estimate, I decided to
+</span><span class="comment">    % average out the ML estimates for this particular N across all trials,
+</span><span class="comment">    % not sure if this is the proper way to do it
+</span><span class="comment">    mu_ML_avg = mean(mu_ML_norm(:,i),1);
+</span><span class="comment">    mu_N = sigma^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_o(s) + ...
+</span><span class="comment">            N(i)*sigma_o(s)^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_ML_avg;
+</span><span class="comment">    sigma_N = (1/sigma_o(s)^2+N(i)/sigma^2)^(-1/2); % -1/2 power b/c sqrt
+</span><span class="comment">    % Update distribution
+</span><span class="comment">    p_post = pdf('normal',x_vec,mu_N,sigma_N);
+</span><span class="comment">    % "Plot" graph
+</span><span class="comment">    plot(x_vec,p_post)
+</span><span class="comment">    title(sprintf('Gaussian Posterior Density (\\mu_{0}=%.3f, \\sigma_{0}=%.3f)',mu_o(s),sigma_o(s)))
+</span><span class="comment">    xlabel('X')
+</span><span class="comment">    axis([-1 1 0 3])
+</span><span class="comment">    legend(['N = ' num2str(N(i))])
+</span><span class="comment">    %drawnow
+</span><span class="comment">    % Capture plot frame
+</span><span class="comment">    M(i) = getframe(gcf);
+</span><span class="comment">end
+</span><span class="comment">
+</span><span class="comment">% Play movie
+</span><span class="comment">nRepeat = 1;
+</span><span class="comment">fps = 15;
+</span><span class="comment">movie(figure,M,nRepeat,fps)
+</span><span class="comment">%}</span>
+</pre><img vspace="5" hspace="5" src="proj1_05.png" alt=""> <img vspace="5" hspace="5" src="proj1_06.png" alt=""> <h2>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<a name="8"></a></h2><h2>Gaussian Distribution, Known Mean, Unknown Variance - Mean-Squared Errors of ML and CP Estimates<a name="9"></a></h2><pre class="codeinput"><span class="comment">% Calculating MSE of ML estimates (just the sample variance)</span>
+<span class="comment">% See P100: sigma_mL^2 = sum(x_n - mu)^2/N</span>
 MSE_ML_norm = [];
-lambda_ML_norm = []; <span class="comment">% ML estimates for precision (inversion of variance</span>
-                    <span class="comment">% instead of mean, N-by-nTrials</span>
+sigma_sq_ML_norm = []; <span class="comment">% ML estimates for variance (sigma^2) instead of mean</span>
+                     <span class="comment">% N-by-nTrials</span>
 <span class="keyword">for</span> i = 1:length(N)
     <span class="comment">% Take sample variance of observations for each trial, var of rows (dim=1)</span>
-    <span class="comment">% Invert to get precision</span>
-    lambda_ML_norm_i = (sum((x_norm{i,1}-mu).^2,1)/N(i)).^(-1);
-    <span class="comment">% Take mean sq. error for all ML estimates, mean of cols (dim=2)</span>
-    <span class="comment">% Since we're comparing precisions, we subtract 1/var = 1/sigma^2</span>
-    MSE_ML_norm_i = mean((lambda_ML_norm_i-1/sigma^2).^2,2);
+    sigma_sq_ML_norm_i = sum((x_norm{i,1}-mu).^2,1)/N(i);
+    <span class="comment">% Take mean sq. error for all trial estimates, mean of cols (dim=2)</span>
+    <span class="comment">% Since we're comparing variances, we subtract var = sigma^2</span>
+    MSE_ML_norm_i = mean((sigma_sq_ML_norm_i-sigma^2).^2,2);
     <span class="comment">% Store values</span>
     MSE_ML_norm = [MSE_ML_norm MSE_ML_norm_i];
-    lambda_ML_norm  = [lambda_ML_norm; lambda_ML_norm_i];
+    sigma_sq_ML_norm  = [sigma_sq_ML_norm; sigma_sq_ML_norm_i];
 <span class="keyword">end</span>
 
 <span class="comment">%MSE_ML_norm</span>
-<span class="comment">%lambda_ML_norm</span>
+<span class="comment">%sigma_sq_ML_norm</span>
 
 <span class="comment">% Gamma distribution parameters for prior (4 sets)</span>
 a_o = [0.1, 1, 4, 8];
@@ -346,21 +389,22 @@ b_o = [0.1, 1, 6, 4];
 <span class="comment">% Calculating MSE of CP estimates</span>
 MSE_CP_norm = []; <span class="comment">% nParameterSets-by-N matrix</span>
 <span class="keyword">for</span> i = 1:length(a_o)
-    <span class="comment">% See P100 for the following explanation:</span>
-    <span class="comment">% Since the posterior is of the Gamma distribution, we want to compare</span>
-    <span class="comment">% the variance/precision of the distribution to the ML estimate. The</span>
-    <span class="comment">% variance of the Gamma distribution is a/b^2, so the precision is</span>
-    <span class="comment">% b^2/a. Thus, it makes sense to use b_N^2/a_N (the expressions for</span>
-    <span class="comment">% a_N and b_N are given on P100) as the CP estimate.</span>
+    <span class="comment">% Refer to P100:</span>
+    <span class="comment">% Since the posterior is of the Gamma distribution and takes lambda</span>
+    <span class="comment">% (the precision aka inverse of variance) as a parameter, we use the</span>
+    <span class="comment">% inverse of the mean of the posterior distribution as our estimator.</span>
+    <span class="comment">% The mean of the Gamma distribution is a/b, so we use b_N/a_N as the</span>
+    <span class="comment">% CP estimate, where a_N and b_N are the parameters for the posterior</span>
+    <span class="comment">% for which expressions are provided.</span>
     a_N = a_o(i) + N/2;
-    <span class="comment">% We use bsxfun here again because N is a row vec and lambda is a</span>
+    <span class="comment">% We use bsxfun here again because N is a row vec and sigma_sq is a</span>
     <span class="comment">% matrix with N rows</span>
     <span class="comment">% We transpose it to get N cols</span>
-    b_N = b_o(i) + bsxfun(@times,N/2,(lambda_ML_norm)'.^(-1));
-    <span class="comment">% Right divide, since it's b_N^2/a_N</span>
-    lambda_CP_norm = bsxfun(@rdivide,b_N.^2,a_N);
+    b_N = b_o(i) + bsxfun(@times,N/2,sigma_sq_ML_norm');
+    <span class="comment">% Right divide b_N/a_N, which are different sizes so use bsxfun</span>
+    sigma_sq_CP_norm = bsxfun(@rdivide,b_N,a_N);
     <span class="comment">% Mean squared error, average the trials (rows, dim=1)</span>
-    MSE_CP_norm_i = mean((lambda_CP_norm-1/sigma^2).^2,1);
+    MSE_CP_norm_i = mean((sigma_sq_CP_norm-sigma^2).^2,1);
     <span class="comment">% Store in vector</span>
     MSE_CP_norm = [MSE_CP_norm; MSE_CP_norm_i];
 <span class="keyword">end</span>
@@ -385,38 +429,63 @@ legend(<span class="string">'ML'</span>,<span class="keyword">...</span>
         sprintf(<span class="string">'CP (a_{0}=%.3f, b_{0}=%.3f)'</span>,a_o(3),b_o(3)),<span class="keyword">...</span><span class="comment">.</span>
         sprintf(<span class="string">'CP (a_{0}=%.3f, b_{0}=%.3f)'</span>,a_o(4),b_o(4)))
 xlabel(<span class="string">'N (No. of observations)'</span>)
-ylabel(<span class="string">'Mean-squared Error'</span>)
+ylabel(<span class="string">'Mean-squared Error for Variance'</span>)
 hold <span class="string">off</span>
-</pre><img vspace="5" hspace="5" src="proj1_gaussian_known_mean_07.png" alt=""> <h2>Gaussian Distribution, Known Mean, Unknown Variance - Modeling Posterior Density (Gamma Distribution)<a name="10"></a></h2><pre class="codeinput"><span class="comment">% Different probabilities of success, x-axis</span>
+</pre><img vspace="5" hspace="5" src="proj1_07.png" alt=""> <h2>Gaussian Distribution, Known Mean, Unknown Variance - Modeling Posterior Density (Gamma Distribution)<a name="10"></a></h2><pre class="codeinput"><span class="comment">% x-axis</span>
 x_vec = 0:0.01:5;
 
 <span class="comment">% Parameter set selector</span>
 s = 1;
 
-<span class="comment">% Capture pdf snapshots into frames for movie function</span>
-<span class="keyword">for</span> i = 1:length(N)
-    <span class="comment">% Update parameters</span>
-    <span class="comment">% As before, take the average of the ML estimate for lambda</span>
-    lambda_ML_norm_avg = mean(lambda_ML_norm(:,i),1);
-    a_N = a_o(s) + N(i)/2;
-    b_N = b_o(s) + N(2)/2*lambda_ML_norm_avg^(-1);
-    <span class="comment">% Update distribution</span>
-    p_post = pdf(<span class="string">'gamma'</span>,x_vec,a_N,b_N);
-    <span class="comment">% "Plot" graph</span>
-    plot(x_vec,p_post)
-    title(sprintf(<span class="string">'Gamma Posterior Density (a_{0}=%.3f, b_{0}=%.3f)'</span>,a_o(s),b_o(s)))
-    xlabel(<span class="string">'X'</span>)
-    axis([0 5 0 1])
-    legend([<span class="string">'N = '</span> num2str(N(i))])
-    drawnow
-    <span class="comment">% Capture plot frame</span>
-    M(i) = getframe(gcf);
-<span class="keyword">end</span>
+<span class="comment">% Initialize plot</span>
+figure;
+update_plot_gamma(1,N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+f = figure;
+update_plot_gamma(length(N),N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
 
-<span class="comment">% Play movie 1 time at 5 fps</span>
-movie(figure,M,1,5)
-</pre><img vspace="5" hspace="5" src="proj1_gaussian_known_mean_08.png" alt=""> <img vspace="5" hspace="5" src="proj1_gaussian_known_mean_09.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+<span class="comment">% Set up slider used to change N</span>
+slider = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'slider'</span>,<span class="string">'Position'</span>,[10 50 20 340],<span class="keyword">...</span>
+              <span class="string">'value'</span>,1,<span class="string">'min'</span>,1,<span class="string">'max'</span>,length(N),<span class="string">'SliderStep'</span>,[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,24,23,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,<span class="string">'1'</span>,<span class="string">'BackgroundColor'</span>,bgcolor);
+slider_label2 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,390,23,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,num2str(length(N)),<span class="string">'BackgroundColor'</span>,bgcolor);
+
+<span class="comment">% Set slider callback to update plot</span>
+slider.Callback = @(es,ed) update_plot_gamma(round(es.Value),N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+
+<span class="comment">%{
+</span><span class="comment">% Capture pdf snapshots into frames for movie function
+</span><span class="comment">for i = 1:length(N)
+</span><span class="comment">    % Update parameters
+</span><span class="comment">    % As before, take the average of the ML estimate for lambda
+</span><span class="comment">    sigma_sq_ML_norm_avg = mean(sigma_sq_ML_norm(:,i),1);
+</span><span class="comment">    a_N = a_o(s) + N(i)/2;
+</span><span class="comment">    b_N = b_o(s) + N(i)/2*sigma_sq_ML_norm_avg;
+</span><span class="comment">    % Update distribution
+</span><span class="comment">    p_post = pdf('gamma',x_vec,a_N,b_N);
+</span><span class="comment">    % "Plot" graph
+</span><span class="comment">    plot(x_vec,p_post)
+</span><span class="comment">    title(sprintf('Gamma Posterior Density (a_{0}=%.3f, b_{0}=%.3f)',a_o(s),b_o(s)))
+</span><span class="comment">    xlabel('X')
+</span><span class="comment">    axis([0 5 0 1])
+</span><span class="comment">    legend(['N = ' num2str(N(i))])
+</span><span class="comment">    %drawnow
+</span><span class="comment">    % Capture plot frame
+</span><span class="comment">    M(i) = getframe(gcf);
+</span><span class="comment">end
+</span><span class="comment">
+</span><span class="comment">% Play movie
+</span><span class="comment">nRepeat = 1;
+</span><span class="comment">fps = 15;
+</span><span class="comment">movie(figure,M,nRepeat,fps)
+</span><span class="comment">%}</span>
+</pre><img vspace="5" hspace="5" src="proj1_08.png" alt=""> <img vspace="5" hspace="5" src="proj1_09.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
+%%  ECE414 Makeene Learning - Project 1
+%   By Jeffrey Shih
+
 %% Binomial Distribution - Random Data Generation
 
 clc; clear all; close all;
@@ -440,7 +509,7 @@ nTrials = 100;
 %   (for vectorization purposes)
 %   - So each COLUMN of the inner matrix represents a different trial for
 %     the fixed N associated with that matrix
-x = cell(size(N,2),1);
+x = cell(size(N,2),1); % can just use length(N) for vectors
 for i = 1:size(N,2)
     % Temporary inner matrix
     x_i = [];
@@ -448,7 +517,7 @@ for i = 1:size(N,2)
     % Take transpose of output of rand so you get a column vector (trials
     % are columns)
     for j = 1:nTrials
-        x_i = [x_i (rand(1,N(i)) <= p)'];
+        x_i = [x_i (rand(1,N(i))<=p)'];
     end
     % Store the matrix in the cell array
     x{i,1} = x_i; % USE CURLY BRACES TO REPLACE DATA,
@@ -516,7 +585,7 @@ for i = 1:size(a,2)
     hold on
 end
 
-title(['Mean-Squared Error Comparison of ML and CP Estimates of Mean '...
+title(['Mean-Squared Error Comparison of ML and CP Estimates of Probability of Success '...
         'for Binomial Distribution ',sprintf('(No. Trials = %d)',nTrials)])
 legend('ML',...
         sprintf('CP (A=%.3f, B=%.3f)',a(1),b(1)),...
@@ -524,7 +593,7 @@ legend('ML',...
         sprintf('CP (A=%.3f, B=%.3f)',a(3),b(3)),...
         sprintf('CP (A=%.3f, B=%.3f)',a(4),b(4)))
 xlabel('N (No. of observations)')
-ylabel('Mean-squared Error')
+ylabel('Mean-squared Error for Probability of Success')
 hold off
 
 %% Binomial Distribution - Modeling Posterior Density (Beta Distribution)
@@ -535,6 +604,27 @@ x_vec = 0:0.01:1;
 % Parameter set selector
 s = 1;
 
+% Initialize plot
+% We're plotting both N = 1 and max N so that publish displays 2 graphs
+figure;
+update_plot_beta(1,N,x_vec,s,m,l,a,b);
+f = figure;
+update_plot_beta(length(N),N,x_vec,s,m,l,a,b);
+
+% Set up slider used to change N
+slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
+              'value',1,'min',1,'max',length(N),'SliderStep',[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
+                'String','1','BackgroundColor',bgcolor);
+slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,23,23],...
+                'String',num2str(length(N)),'BackgroundColor',bgcolor);
+
+% Set slider callback to update plot, need to round the slider value
+% because it might not be an integer
+slider.Callback = @(es,ed) update_plot_beta(round(es.Value),N,x_vec,s,m,l,a,b);
+
+%{
 % Capture pdf snapshots into frames for movie function
 for i = 1:size(N,2)
     % Update parameters
@@ -549,19 +639,19 @@ for i = 1:size(N,2)
     %ylabel('??')
     axis([0 1 0 15])
     legend(['N = ' num2str(N(i))])
-    drawnow
-    % Capture plot frame
-    M(i) = getframe(gcf);
 end
 
-% Play movie 1 time at 5 fps
-movie(figure,M,1,5)
+% Play movie
+nRepeat = 1;
+fps = 15;
+movie(figure,M,nRepeat,fps)
+%}
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %% Gaussian Distribution - Random Data Generation
 
-clc; clear all; close all;
+clc; clear all;
 
 % Experiment parameters
 N = 1:1:30;
@@ -605,8 +695,8 @@ end
 %mu_ML_norm
 
 % Normal distribution parameters for prior (4 sets)
-mu_o = [0.1, 1, 2, 8];
-sigma_o = sqrt([0.1, 1, 3, 4]);
+mu_o = [0.1, 1, 2, 5];
+sigma_o = sqrt([0.1, 1, 3, 10]);
 
 % Calculating MSE of CP estimates
 MSE_CP_norm = []; % This will be a nParameterSets-by-N matrix (as opposed
@@ -653,17 +743,36 @@ legend('ML',...
         sprintf('CP (\\mu_{0}=%.3f, \\sigma_{0}^{2}=%.3f)',mu_o(3),sigma_o(3)^2),....
         sprintf('CP (\\mu_{0}=%.3f, \\sigma_{0}^{2}=%.3f)',mu_o(4),sigma_o(4)^2))
 xlabel('N (No. of observations)')
-ylabel('Mean-squared Error')
+ylabel('Mean-squared Error for Mean')
 hold off
 
 %% Gaussian Distribution, Known Variance, Unknown Mean - Modeling Posterior Density (Gaussian Distribution)
 
-% Different probabilities of success, x-axis
+% x-axis
 x_vec = -1:0.01:1;
 
 % Parameter set selector
 s = 1;
 
+% Initialize plot
+figure;
+update_plot_gaussian(1,N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
+f = figure;
+update_plot_gaussian(length(N),N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
+
+% Set up slider used to change N
+slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
+              'value',1,'min',1,'max',length(N),'SliderStep',[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
+                'String','1','BackgroundColor',bgcolor);
+slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,23,23],...
+                'String',num2str(length(N)),'BackgroundColor',bgcolor);
+
+% Set slider callback to update plot
+slider.Callback = @(es,ed) update_plot_gaussian(round(es.Value),N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o);
+
+%{
 % Capture pdf snapshots into frames for movie function
 for i = 1:length(N)
     % Update parameters
@@ -682,37 +791,39 @@ for i = 1:length(N)
     xlabel('X')
     axis([-1 1 0 3])
     legend(['N = ' num2str(N(i))])
-    drawnow
+    %drawnow
     % Capture plot frame
     M(i) = getframe(gcf);
 end
 
-% Play movie 1 time at 5 fps
-movie(figure,M,1,5)
+% Play movie
+nRepeat = 1;
+fps = 15;
+movie(figure,M,nRepeat,fps)
+%}
 
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %% Gaussian Distribution, Known Mean, Unknown Variance - Mean-Squared Errors of ML and CP Estimates
 
 % Calculating MSE of ML estimates (just the sample variance)
-% See P100, sigma_mL^2 = sum(x_n - mu)^2/N
+% See P100: sigma_mL^2 = sum(x_n - mu)^2/N
 MSE_ML_norm = [];
-lambda_ML_norm = []; % ML estimates for precision (inversion of variance
-                    % instead of mean, N-by-nTrials
+sigma_sq_ML_norm = []; % ML estimates for variance (sigma^2) instead of mean
+                     % N-by-nTrials
 for i = 1:length(N)
     % Take sample variance of observations for each trial, var of rows (dim=1)
-    % Invert to get precision
-    lambda_ML_norm_i = (sum((x_norm{i,1}-mu).^2,1)/N(i)).^(-1);
-    % Take mean sq. error for all ML estimates, mean of cols (dim=2)
-    % Since we're comparing precisions, we subtract 1/var = 1/sigma^2
-    MSE_ML_norm_i = mean((lambda_ML_norm_i-1/sigma^2).^2,2);
+    sigma_sq_ML_norm_i = sum((x_norm{i,1}-mu).^2,1)/N(i);
+    % Take mean sq. error for all trial estimates, mean of cols (dim=2)
+    % Since we're comparing variances, we subtract var = sigma^2
+    MSE_ML_norm_i = mean((sigma_sq_ML_norm_i-sigma^2).^2,2);
     % Store values
     MSE_ML_norm = [MSE_ML_norm MSE_ML_norm_i];
-    lambda_ML_norm  = [lambda_ML_norm; lambda_ML_norm_i];
+    sigma_sq_ML_norm  = [sigma_sq_ML_norm; sigma_sq_ML_norm_i];
 end
 
 %MSE_ML_norm
-%lambda_ML_norm
+%sigma_sq_ML_norm
 
 % Gamma distribution parameters for prior (4 sets)
 a_o = [0.1, 1, 4, 8];
@@ -721,21 +832,22 @@ b_o = [0.1, 1, 6, 4];
 % Calculating MSE of CP estimates
 MSE_CP_norm = []; % nParameterSets-by-N matrix
 for i = 1:length(a_o)
-    % See P100 for the following explanation:
-    % Since the posterior is of the Gamma distribution, we want to compare
-    % the variance/precision of the distribution to the ML estimate. The
-    % variance of the Gamma distribution is a/b^2, so the precision is
-    % b^2/a. Thus, it makes sense to use b_N^2/a_N (the expressions for
-    % a_N and b_N are given on P100) as the CP estimate.
+    % Refer to P100:
+    % Since the posterior is of the Gamma distribution and takes lambda
+    % (the precision aka inverse of variance) as a parameter, we use the
+    % inverse of the mean of the posterior distribution as our estimator.
+    % The mean of the Gamma distribution is a/b, so we use b_N/a_N as the
+    % CP estimate, where a_N and b_N are the parameters for the posterior
+    % for which expressions are provided.
     a_N = a_o(i) + N/2;
-    % We use bsxfun here again because N is a row vec and lambda is a
+    % We use bsxfun here again because N is a row vec and sigma_sq is a
     % matrix with N rows
     % We transpose it to get N cols
-    b_N = b_o(i) + bsxfun(@times,N/2,(lambda_ML_norm)'.^(-1));
-    % Right divide, since it's b_N^2/a_N
-    lambda_CP_norm = bsxfun(@rdivide,b_N.^2,a_N);
+    b_N = b_o(i) + bsxfun(@times,N/2,sigma_sq_ML_norm');
+    % Right divide b_N/a_N, which are different sizes so use bsxfun
+    sigma_sq_CP_norm = bsxfun(@rdivide,b_N,a_N);
     % Mean squared error, average the trials (rows, dim=1)
-    MSE_CP_norm_i = mean((lambda_CP_norm-1/sigma^2).^2,1);
+    MSE_CP_norm_i = mean((sigma_sq_CP_norm-sigma^2).^2,1);
     % Store in vector
     MSE_CP_norm = [MSE_CP_norm; MSE_CP_norm_i];
 end
@@ -760,24 +872,43 @@ legend('ML',...
         sprintf('CP (a_{0}=%.3f, b_{0}=%.3f)',a_o(3),b_o(3)),....
         sprintf('CP (a_{0}=%.3f, b_{0}=%.3f)',a_o(4),b_o(4)))
 xlabel('N (No. of observations)')
-ylabel('Mean-squared Error')
+ylabel('Mean-squared Error for Variance')
 hold off
 
 %% Gaussian Distribution, Known Mean, Unknown Variance - Modeling Posterior Density (Gamma Distribution)
 
-% Different probabilities of success, x-axis
+% x-axis
 x_vec = 0:0.01:5;
 
 % Parameter set selector
 s = 1;
 
+% Initialize plot
+figure;
+update_plot_gamma(1,N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+f = figure;
+update_plot_gamma(length(N),N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+
+% Set up slider used to change N
+slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
+              'value',1,'min',1,'max',length(N),'SliderStep',[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
+                'String','1','BackgroundColor',bgcolor);
+slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,23,23],...
+                'String',num2str(length(N)),'BackgroundColor',bgcolor);
+
+% Set slider callback to update plot
+slider.Callback = @(es,ed) update_plot_gamma(round(es.Value),N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+
+%{
 % Capture pdf snapshots into frames for movie function
 for i = 1:length(N)
     % Update parameters
     % As before, take the average of the ML estimate for lambda
-    lambda_ML_norm_avg = mean(lambda_ML_norm(:,i),1);
+    sigma_sq_ML_norm_avg = mean(sigma_sq_ML_norm(:,i),1);
     a_N = a_o(s) + N(i)/2;
-    b_N = b_o(s) + N(2)/2*lambda_ML_norm_avg^(-1);
+    b_N = b_o(s) + N(i)/2*sigma_sq_ML_norm_avg;
     % Update distribution
     p_post = pdf('gamma',x_vec,a_N,b_N);
     % "Plot" graph
@@ -786,13 +917,16 @@ for i = 1:length(N)
     xlabel('X')
     axis([0 5 0 1])
     legend(['N = ' num2str(N(i))])
-    drawnow
+    %drawnow
     % Capture plot frame
     M(i) = getframe(gcf);
 end
 
-% Play movie 1 time at 5 fps
-movie(figure,M,1,5)
+% Play movie
+nRepeat = 1;
+fps = 15;
+movie(figure,M,nRepeat,fps)
+%}
 
 ##### SOURCE END #####
 --></body></html>
