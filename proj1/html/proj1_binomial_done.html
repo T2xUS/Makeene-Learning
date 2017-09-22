@@ -1,0 +1,322 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>proj1_binomial_done</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-09-22"><meta name="DC.source" content="proj1_binomial_done.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Binomial Distribution - ML and CP Estimates</a></li><li><a href="#2">Binomial Distribution - Modeling Posterior VS. No. Observations</a></li></ul></div><h2>Binomial Distribution - ML and CP Estimates<a name="1"></a></h2><pre class="codeinput">clc; clear <span class="string">all</span>; close <span class="string">all</span>;
+
+<span class="comment">% Binomial distribution parameters</span>
+N = 1:1:100; <span class="comment">% No. of observations</span>
+p = 0.5; <span class="comment">% Probability of success for one trial</span>
+        <span class="comment">% - Also the mean for Bernoulli (individual trials)</span>
+        <span class="comment">% - This is the true value of the parameter being compared with</span>
+        <span class="comment">%   the ML and CP estimates</span>
+
+<span class="comment">% Data generation</span>
+<span class="comment">% - Generate vector of 1's and 0's for EACH # of observations</span>
+<span class="comment">%   MULTIPLE times</span>
+<span class="comment">% - Since these vectors are differently sized, I store them in a cell array</span>
+<span class="comment">% - The rows of the cell matrix represent each distinct N</span>
+<span class="comment">% - Each element of the cell matrix is a N-by-nTrials normal matrix</span>
+<span class="comment">%   (for vectorization)</span>
+<span class="comment">%   - So each COLUMN of the inner matrix represents a different trial of</span>
+<span class="comment">%     N observations</span>
+nTrials = 100;
+x = cell(size(N,2),1);
+<span class="keyword">for</span> i = 1:size(N,2)
+    <span class="comment">% Temporary inner matrix</span>
+    x_i = [];
+    <span class="comment">% Fill the inner matrix with trials</span>
+    <span class="keyword">for</span> j = 1:nTrials
+        x_i = [x_i (rand(1,N(i)) &lt;= p)'];
+    <span class="keyword">end</span>
+    <span class="comment">% Put the matrix in the cell array</span>
+    x{i,1} = x_i; <span class="comment">% USE CURLY BRACES TO REPLACE DATA,</span>
+                <span class="comment">% smooth brace indexing replaces cells</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Compute mean-squared error of ML estimate for each observation</span>
+<span class="comment">% - Will store it in a vector the same size as N</span>
+<span class="comment">% - We'll also store the counts of 1's and 0's because we'll need it later</span>
+<span class="comment">%   for the conjugate prior (m and l)</span>
+<span class="comment">%   - m and l are N-by-nTrials matrices like the inner matrices of x</span>
+MSE_ML = [];
+m = [];
+l = [];
+<span class="keyword">for</span> i = 1:size(N,2)
+    <span class="comment">% Sum matrix elements along columns (i.e. sum them for the same N) to</span>
+    <span class="comment">% count # of 1's for each trial for a fixed N (m)</span>
+    <span class="comment">% Subtract m from N to get l</span>
+    m_i = sum(x{i,1},1); <span class="comment">% be careful when dealing with row/col vectors</span>
+    l_i = N(i)-m_i;
+    <span class="comment">% Find ML estimate by dividing m by # of observations</span>
+    mu_ML_i = m_i/N(i);
+    <span class="comment">% Find mean squared error by averaging squared error for each</span>
+    <span class="comment">% ML measurement across all trials (along rows)</span>
+    MSE_ML_i = mean((mu_ML_i - p).^2, 2);
+    <span class="comment">% Store values into overall ML, m, and l vectors/matrices</span>
+    MSE_ML = [MSE_ML MSE_ML_i];
+    m = [m; m_i];
+    l = [l; l_i];
+<span class="keyword">end</span>
+
+<span class="comment">% Compute mean-squared error of conjugate prior estimate</span>
+
+<span class="comment">% Beta distribution hyperparameters (4 sets)</span>
+a = [50, 100, 100, 50];
+b = [50, 100, 50, 100];
+
+<span class="comment">% Will store these conjugate prior estimates in a matrix</span>
+<span class="comment">% - Row - different # of observations, Col - hyperparameter sets</span>
+MSE_CP = [];
+<span class="comment">% Go through each set of hyperparameters</span>
+<span class="keyword">for</span> i = 1:size(a,2)
+    <span class="comment">% Calculate the conj. prior estimates (see P73)</span>
+    <span class="comment">% Since we're using m and l, recall that the output is an N-by-nTrials</span>
+    <span class="comment">% matrix</span>
+    mu_CP_i = (m+a(i))./(m+a(i)+l+b(i));
+    <span class="comment">% Take difference from true value (p) and average across trials</span>
+    <span class="comment">% (along rows) to get mean-squared error</span>
+    MSE_CP_i = mean((mu_CP_i - p).^2, 2);
+    <span class="comment">% Store in overall MSE_CP matrix</span>
+    MSE_CP = [MSE_CP MSE_CP_i];
+<span class="keyword">end</span>
+
+<span class="comment">% Plots of estimates for each hyperparameter</span>
+figure
+plot(N,MSE_ML)
+hold <span class="string">on</span>
+
+<span class="keyword">for</span> i = 1:size(a,2)
+    plot(N,MSE_CP(:,i))
+    hold <span class="string">on</span>
+<span class="keyword">end</span>
+
+title([<span class="string">'Mean-Squared Error Comparison of ML and CP Estimates '</span><span class="keyword">...</span>
+        <span class="string">'for Binomial Distribution '</span>,sprintf(<span class="string">'(No. Trials = %d)'</span>,nTrials)])
+legend(<span class="string">'ML'</span>,<span class="keyword">...</span>
+        sprintf(<span class="string">'CP (A=%d, B=%d)'</span>,a(1),b(1)),<span class="keyword">...</span>
+        sprintf(<span class="string">'CP (A=%d, B=%d)'</span>,a(2),b(2)),<span class="keyword">...</span>
+        sprintf(<span class="string">'CP (A=%d, B=%d)'</span>,a(3),b(3)),<span class="keyword">...</span>
+        sprintf(<span class="string">'CP (A=%d, B=%d)'</span>,a(4),b(4)))
+xlabel(<span class="string">'N (No. of observations)'</span>)
+ylabel(<span class="string">'Mean-squared Error'</span>)
+hold <span class="string">off</span>
+</pre><img vspace="5" hspace="5" src="proj1_binomial_done_01.png" alt=""> <h2>Binomial Distribution - Modeling Posterior VS. No. Observations<a name="2"></a></h2><pre class="codeinput"><span class="comment">% Horizontal axis, represents probability of success</span>
+mu = 0:0.01:1;
+
+<span class="comment">% Capture pdf snapshots into frames for movie function</span>
+<span class="keyword">for</span> i = 1:size(N,2)
+    <span class="comment">% Update parameters</span>
+    A_post = m(i)+a(1);
+    B_post = l(i)+b(1);
+    <span class="comment">% Updated distribution</span>
+    p_post = pdf(<span class="string">'beta'</span>,mu,A_post,B_post);
+    <span class="comment">% "Plot" graph</span>
+    plot(mu,p_post)
+    title([<span class="string">'Posterior Density (Beta-Binomial Distribution)'</span>])
+    xlabel(<span class="string">'p (Probability of success)'</span>)
+    axis([0 1 0 15])
+    legend([<span class="string">'N = '</span> num2str(N(i))])
+    drawnow
+    <span class="comment">% Capture plot frame</span>
+    M(i) = getframe(gcf);
+<span class="keyword">end</span>
+
+<span class="comment">% Play movie 1 times at 5 fps</span>
+movie(figure,M,1,5)
+</pre><img vspace="5" hspace="5" src="proj1_binomial_done_02.png" alt=""> <img vspace="5" hspace="5" src="proj1_binomial_done_03.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Binomial Distribution - ML and CP Estimates
+
+clc; clear all; close all;
+
+% Binomial distribution parameters
+N = 1:1:100; % No. of observations
+p = 0.5; % Probability of success for one trial
+        % - Also the mean for Bernoulli (individual trials)
+        % - This is the true value of the parameter being compared with
+        %   the ML and CP estimates
+
+% Data generation           
+% - Generate vector of 1's and 0's for EACH # of observations
+%   MULTIPLE times
+% - Since these vectors are differently sized, I store them in a cell array
+% - The rows of the cell matrix represent each distinct N
+% - Each element of the cell matrix is a N-by-nTrials normal matrix
+%   (for vectorization)
+%   - So each COLUMN of the inner matrix represents a different trial of
+%     N observations
+nTrials = 100;
+x = cell(size(N,2),1);
+for i = 1:size(N,2)
+    % Temporary inner matrix
+    x_i = [];
+    % Fill the inner matrix with trials
+    for j = 1:nTrials
+        x_i = [x_i (rand(1,N(i)) <= p)'];
+    end
+    % Put the matrix in the cell array
+    x{i,1} = x_i; % USE CURLY BRACES TO REPLACE DATA,
+                % smooth brace indexing replaces cells
+end
+
+% Compute mean-squared error of ML estimate for each observation
+% - Will store it in a vector the same size as N
+% - We'll also store the counts of 1's and 0's because we'll need it later
+%   for the conjugate prior (m and l)
+%   - m and l are N-by-nTrials matrices like the inner matrices of x
+MSE_ML = [];
+m = [];
+l = [];
+for i = 1:size(N,2)
+    % Sum matrix elements along columns (i.e. sum them for the same N) to
+    % count # of 1's for each trial for a fixed N (m)
+    % Subtract m from N to get l
+    m_i = sum(x{i,1},1); % be careful when dealing with row/col vectors
+    l_i = N(i)-m_i;
+    % Find ML estimate by dividing m by # of observations
+    mu_ML_i = m_i/N(i);
+    % Find mean squared error by averaging squared error for each
+    % ML measurement across all trials (along rows)
+    MSE_ML_i = mean((mu_ML_i - p).^2, 2);
+    % Store values into overall ML, m, and l vectors/matrices
+    MSE_ML = [MSE_ML MSE_ML_i];
+    m = [m; m_i];
+    l = [l; l_i];
+end
+
+% Compute mean-squared error of conjugate prior estimate
+
+% Beta distribution hyperparameters (4 sets)
+a = [50, 100, 100, 50];
+b = [50, 100, 50, 100];
+
+% Will store these conjugate prior estimates in a matrix
+% - Row - different # of observations, Col - hyperparameter sets
+MSE_CP = [];
+% Go through each set of hyperparameters
+for i = 1:size(a,2)
+    % Calculate the conj. prior estimates (see P73)
+    % Since we're using m and l, recall that the output is an N-by-nTrials
+    % matrix
+    mu_CP_i = (m+a(i))./(m+a(i)+l+b(i));
+    % Take difference from true value (p) and average across trials
+    % (along rows) to get mean-squared error
+    MSE_CP_i = mean((mu_CP_i - p).^2, 2);
+    % Store in overall MSE_CP matrix
+    MSE_CP = [MSE_CP MSE_CP_i];
+end
+
+% Plots of estimates for each hyperparameter
+figure
+plot(N,MSE_ML)
+hold on
+
+for i = 1:size(a,2)
+    plot(N,MSE_CP(:,i))
+    hold on
+end
+
+title(['Mean-Squared Error Comparison of ML and CP Estimates '...
+        'for Binomial Distribution ',sprintf('(No. Trials = %d)',nTrials)])
+legend('ML',...
+        sprintf('CP (A=%d, B=%d)',a(1),b(1)),...
+        sprintf('CP (A=%d, B=%d)',a(2),b(2)),...
+        sprintf('CP (A=%d, B=%d)',a(3),b(3)),...
+        sprintf('CP (A=%d, B=%d)',a(4),b(4)))
+xlabel('N (No. of observations)')
+ylabel('Mean-squared Error')
+hold off
+
+%% Binomial Distribution - Modeling Posterior VS. No. Observations
+
+% Horizontal axis, represents probability of success
+mu = 0:0.01:1;
+
+% Capture pdf snapshots into frames for movie function
+for i = 1:size(N,2)
+    % Update parameters
+    A_post = m(i)+a(1);
+    B_post = l(i)+b(1);
+    % Updated distribution
+    p_post = pdf('beta',mu,A_post,B_post);
+    % "Plot" graph
+    plot(mu,p_post)
+    title(['Posterior Density (Beta-Binomial Distribution)'])
+    xlabel('p (Probability of success)')
+    axis([0 1 0 15])
+    legend(['N = ' num2str(N(i))])
+    drawnow
+    % Capture plot frame
+    M(i) = getframe(gcf);
+end
+
+% Play movie 1 times at 5 fps
+movie(figure,M,1,5)
+
+##### SOURCE END #####
+--></body></html>
