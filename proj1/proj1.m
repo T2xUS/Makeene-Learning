@@ -122,9 +122,9 @@ s = 1;
 % Initialize plot
 % We're plotting both N = 1 and max N so that publish displays 2 graphs
 figure;
-update_plot_beta(1,N,x_vec,s,m,l,a,b);
-f = figure;
 update_plot_beta(length(N),N,x_vec,s,m,l,a,b);
+f = figure;
+update_plot_beta(1,N,x_vec,s,m,l,a,b);
 
 % Set up slider used to change N
 slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
@@ -271,9 +271,9 @@ s = 1;
 
 % Initialize plot
 figure;
-update_plot_gaussian(1,N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
-f = figure;
 update_plot_gaussian(length(N),N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
+f = figure;
+update_plot_gaussian(1,N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
 
 % Set up slider used to change N
 slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
@@ -400,9 +400,9 @@ s = 1;
 
 % Initialize plot
 figure;
-update_plot_gamma(1,N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
-f = figure;
 update_plot_gamma(length(N),N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+f = figure;
+update_plot_gamma(1,N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
 
 % Set up slider used to change N
 slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
