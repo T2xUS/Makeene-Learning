@@ -111,57 +111,6 @@ xlabel('N (No. of observations)')
 ylabel('Mean-squared Error for Probability of Success')
 hold off
 
-%% Binomial Distribution - Modeling Posterior Density (Beta Distribution)
-
-% Different probabilities of success, x-axis
-x_vec = 0:0.01:1;
-
-% Parameter set selector
-s = 1;
-
-% Initialize plot
-% We're plotting both N = 1 and max N so that publish displays 2 graphs
-figure;
-update_plot_beta(length(N),N,x_vec,s,m,l,a,b);
-f = figure;
-update_plot_beta(1,N,x_vec,s,m,l,a,b);
-
-% Set up slider used to change N
-slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
-              'value',1,'min',1,'max',length(N),'SliderStep',[1/(length(N)-1) 1]);
-bgcolor = f.Color;
-slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
-                'String','1','BackgroundColor',bgcolor);
-slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,23,23],...
-                'String',num2str(length(N)),'BackgroundColor',bgcolor);
-
-% Set slider callback to update plot, need to round the slider value
-% because it might not be an integer
-slider.Callback = @(es,ed) update_plot_beta(round(es.Value),N,x_vec,s,m,l,a,b);
-
-%{
-% Capture pdf snapshots into frames for movie function
-for i = 1:size(N,2)
-    % Update parameters
-    A_post = m(i)+a(s);
-    B_post = l(i)+b(s);
-    % Update distribution
-    p_post = pdf('beta',x_vec,A_post,B_post);
-    % "Plot" graph
-    plot(x_vec,p_post)
-    title(sprintf('Beta Posterior Density (A_{prior}=%.3f, B_{prior}=%.3f)',a(s),b(s)))
-    xlabel('X')
-    %ylabel('??')
-    axis([0 1 0 15])
-    legend(['N = ' num2str(N(i))])
-end
-
-% Play movie
-nRepeat = 1;
-fps = 15;
-movie(figure,M,nRepeat,fps)
-%}
-
 %% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 %% Gaussian Distribution - Random Data Generation
@@ -169,7 +118,7 @@ movie(figure,M,nRepeat,fps)
 clc; clear all;
 
 % Experiment parameters
-N = 1:1:30;
+N = 1:1:100;
 nTrials = 100;
 
 % Standard normal parameters (these are the true values to compare our
@@ -261,64 +210,6 @@ xlabel('N (No. of observations)')
 ylabel('Mean-squared Error for Mean')
 hold off
 
-%% Gaussian Distribution, Known Variance, Unknown Mean - Modeling Posterior Density (Gaussian Distribution)
-
-% x-axis
-x_vec = -1:0.01:1;
-
-% Parameter set selector
-s = 1;
-
-% Initialize plot
-figure;
-update_plot_gaussian(length(N),N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
-f = figure;
-update_plot_gaussian(1,N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
-
-% Set up slider used to change N
-slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
-              'value',1,'min',1,'max',length(N),'SliderStep',[1/(length(N)-1) 1]);
-bgcolor = f.Color;
-slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
-                'String','1','BackgroundColor',bgcolor);
-slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,23,23],...
-                'String',num2str(length(N)),'BackgroundColor',bgcolor);
-
-% Set slider callback to update plot
-slider.Callback = @(es,ed) update_plot_gaussian(round(es.Value),N,x_vec,s,mu_ML_norm,sigma,mu_o,sigma_o);
-
-%{
-% Capture pdf snapshots into frames for movie function
-for i = 1:length(N)
-    % Update parameters
-    % Since the update parameter contains the ML estimate, I decided to
-    % average out the ML estimates for this particular N across all trials,
-    % not sure if this is the proper way to do it
-    mu_ML_avg = mean(mu_ML_norm(:,i),1);
-    mu_N = sigma^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_o(s) + ...
-            N(i)*sigma_o(s)^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_ML_avg;
-    sigma_N = (1/sigma_o(s)^2+N(i)/sigma^2)^(-1/2); % -1/2 power b/c sqrt
-    % Update distribution
-    p_post = pdf('normal',x_vec,mu_N,sigma_N);
-    % "Plot" graph
-    plot(x_vec,p_post)
-    title(sprintf('Gaussian Posterior Density (\\mu_{0}=%.3f, \\sigma_{0}=%.3f)',mu_o(s),sigma_o(s)))
-    xlabel('X')
-    axis([-1 1 0 3])
-    legend(['N = ' num2str(N(i))])
-    %drawnow
-    % Capture plot frame
-    M(i) = getframe(gcf);
-end
-
-% Play movie
-nRepeat = 1;
-fps = 15;
-movie(figure,M,nRepeat,fps)
-%}
-
-%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 %% Gaussian Distribution, Known Mean, Unknown Variance - Mean-Squared Errors of ML and CP Estimates
 
 % Calculating MSE of ML estimates (just the sample variance)
@@ -390,19 +281,45 @@ xlabel('N (No. of observations)')
 ylabel('Mean-squared Error for Variance')
 hold off
 
-%% Gaussian Distribution, Known Mean, Unknown Variance - Modeling Posterior Density (Gamma Distribution)
+%% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-% x-axis
-x_vec = 0:0.01:5;
+%% Modeling Posterior Density for Binomial Distribution (Beta Distribution)
+
+clc; clear all;
+
+% Generate new vector of random data and take increasing subsets of data
+% to see effects of new observation on distribution
+N = 1:1:1000;
+p = 0.5;
+x = rand(1,length(N))<=p;
+
+% Generate ML estimates for this new vector
+m = [];
+l = [];
+for i = 1:length(N)
+    % Store ML estimates for each subset of x
+    m_i = sum(x(1:N(i)));
+    l_i = N(i)-m_i;
+    m = [m m_i];
+    l = [l l_i];
+end
+
+% Prior parameters
+a = [0.1, 1, 2, 8];
+b = [0.1, 1, 3, 4];
 
 % Parameter set selector
 s = 1;
 
+% Different probabilities of success, x-axis
+p_vec = 0:0.01:1;
+
 % Initialize plot
+% We're plotting both N = 1 and max N so that publish displays 2 graphs
 figure;
-update_plot_gamma(length(N),N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+update_plot_beta(length(N),N,p_vec,s,m,l,a,b);
 f = figure;
-update_plot_gamma(1,N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+update_plot_beta(1,N,p_vec,s,m,l,a,b);
 
 % Set up slider used to change N
 slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
@@ -410,11 +327,163 @@ slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
 bgcolor = f.Color;
 slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
                 'String','1','BackgroundColor',bgcolor);
-slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,23,23],...
+slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,30,23],...
+                'String',num2str(length(N)),'BackgroundColor',bgcolor);
+
+% Set slider callback to update plot, need to round the slider value
+% because it might not be an integer
+slider.Callback = @(es,ed) update_plot_beta(round(es.Value),N,p_vec,s,m,l,a,b);
+
+%{
+% Capture pdf snapshots into frames for movie function
+for i = 1:size(N,2)
+    % Update parameters
+    A_post = m(i)+a(s);
+    B_post = l(i)+b(s);
+    % Update distribution
+    p_post = pdf('beta',x_vec,A_post,B_post);
+    % "Plot" graph
+    plot(x_vec,p_post)
+    title(sprintf('Beta Posterior Density (A_{prior}=%.3f, B_{prior}=%.3f)',a(s),b(s)))
+    xlabel('Probability of success')
+    ylabel('Density')
+    axis([0 1 0 25])
+    legend(['N = ' num2str(N(i))])
+end
+
+% Play movie
+nRepeat = 1;
+fps = 15;
+movie(figure,M,nRepeat,fps)
+%}
+
+%% Modeling Posterior Density for Gaussian Distribution, Known Variance, Unknown Mean (Gaussian Distribution)
+
+clc; clear all;
+
+% Generate new vector of random data and take increasing subsets of data
+% to see effects of new observation on distribution
+N = 1:1:1000;
+mu = 0;
+sigma = 1;
+x_norm = randn(1,length(N));
+
+% Generate ML estimates for this new vector
+mu_ML_norm = [];
+for i = 1:length(N)
+    % Store ML estimates for each subset of x
+    mu_ML_norm_i = sum(x_norm(1:N(i)))/N(i);
+    mu_ML_norm = [mu_ML_norm mu_ML_norm_i];
+end
+
+% Prior parameters
+mu_o = [0.1, 1, 2, 5];
+sigma_o = sqrt([0.1, 1, 3, 10]);
+
+% Parameter set selector
+s = 1;
+
+% Different means, x-axis
+mean_vec = -1:0.01:1;
+
+% Initialize plot
+figure;
+update_plot_gaussian(length(N),N,mean_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
+f = figure;
+update_plot_gaussian(1,N,mean_vec,s,mu_ML_norm,sigma,mu_o,sigma_o)
+
+% Set up slider used to change N
+slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
+              'value',1,'min',1,'max',length(N),'SliderStep',[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
+                'String','1','BackgroundColor',bgcolor);
+slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,30,23],...
                 'String',num2str(length(N)),'BackgroundColor',bgcolor);
 
 % Set slider callback to update plot
-slider.Callback = @(es,ed) update_plot_gamma(round(es.Value),N,x_vec,s,sigma_sq_ML_norm,a_o,b_o);
+slider.Callback = @(es,ed) update_plot_gaussian(round(es.Value),N,mean_vec,s,mu_ML_norm,sigma,mu_o,sigma_o);
+
+%{
+% Capture pdf snapshots into frames for movie function
+for i = 1:length(N)
+    % Update parameters
+    % Since the update parameter contains the ML estimate, I decided to
+    % average out the ML estimates for this particular N across all trials,
+    % not sure if this is the proper way to do it
+    mu_ML_avg = mean(mu_ML_norm(:,i),1);
+    mu_N = sigma^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_o(s) + ...
+            N(i)*sigma_o(s)^2/(N(i)*sigma_o(s)^2+sigma^2)*mu_ML_avg;
+    sigma_N = (1/sigma_o(s)^2+N(i)/sigma^2)^(-1/2); % -1/2 power b/c sqrt
+    % Update distribution
+    p_post = pdf('normal',x_vec,mu_N,sigma_N);
+    % "Plot" graph
+    plot(x_vec,p_post)
+    title(sprintf('Gaussian Posterior Density (\\mu_{0}=%.3f, \\sigma_{0}=%.3f)',mu_o(s),sigma_o(s)))
+    xlabel('Mean')
+    ylabel('Density')
+    axis([-1 1 0 3])
+    legend(['N = ' num2str(N(i))])
+    %drawnow
+    % Capture plot frame
+    M(i) = getframe(gcf);
+end
+
+% Play movie
+nRepeat = 1;
+fps = 15;
+movie(figure,M,nRepeat,fps)
+%}
+
+%% Modeling Posterior Density for Gaussian Distribution, Known Mean, Unknown Variance (Gamma Distribution)
+
+clc; clear all;
+
+% Generate new vector of random data and take increasing subsets of data
+% to see effects of new observation on distribution
+N = 1:1:1000;
+mu = 0;
+sigma = 1;
+x_norm = randn(1,length(N));
+
+% Generate ML estimates for this new vector
+sigma_sq_ML_norm = [];
+for i = 1:length(N)
+    % Store ML estimates for each subset of x
+    sigma_sq_ML_norm_i = sum((x_norm(1:N(i))-mu).^2)/N(i);
+    sigma_sq_ML_norm = [sigma_sq_ML_norm sigma_sq_ML_norm_i];
+end
+
+% Prior parameters
+a_o = [0.1, 1, 4, 8];
+b_o = [0.1, 1, 6, 4];
+
+% Parameter set selector
+s = 1;
+
+% Different precisions, x-axis
+prec_vec = 0:0.01:5;
+
+% Parameter set selector
+s = 1;
+
+% Initialize plot
+figure;
+update_plot_gamma(length(N),N,prec_vec,s,sigma_sq_ML_norm,a_o,b_o);
+f = figure;
+update_plot_gamma(1,N,prec_vec,s,sigma_sq_ML_norm,a_o,b_o);
+
+% Set up slider used to change N
+slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
+              'value',1,'min',1,'max',length(N),'SliderStep',[1/(length(N)-1) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
+                'String','1','BackgroundColor',bgcolor);
+slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,30,23],...
+                'String',num2str(length(N)),'BackgroundColor',bgcolor);
+
+% Set slider callback to update plot
+slider.Callback = @(es,ed) update_plot_gamma(round(es.Value),N,prec_vec,s,sigma_sq_ML_norm,a_o,b_o);
 
 %{
 % Capture pdf snapshots into frames for movie function
@@ -429,7 +498,8 @@ for i = 1:length(N)
     % "Plot" graph
     plot(x_vec,p_post)
     title(sprintf('Gamma Posterior Density (a_{0}=%.3f, b_{0}=%.3f)',a_o(s),b_o(s)))
-    xlabel('X')
+    xlabel('Precision')
+    ylabel('Density')
     axis([0 5 0 1])
     legend(['N = ' num2str(N(i))])
     %drawnow
