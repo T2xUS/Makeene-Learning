@@ -1,4 +1,5 @@
 % Function used in conjunction with slider to update Figure 3.7 plots
+% Estimate weights and plot likelihood/prior/posterior for increasing # of observations
 function update_plot_3_7(n,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w_est_matrix_LS)
     
     % Change colormap
@@ -175,7 +176,7 @@ function update_plot_3_7(n,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w
         end
         xlabel('\it x')
         ylabel('\it y')
-        axis([-1 1 -1 1])
+        axis([-1 1 -1 1.5])
         hold off
     end
 end
