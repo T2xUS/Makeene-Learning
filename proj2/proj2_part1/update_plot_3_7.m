@@ -22,6 +22,7 @@ function update_plot_3_7(n,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w
         w1 = -1:0.01:1;
         [W0,W1] = meshgrid(w0,w1);
         F0 = reshape(mvnpdf([W0(:) W1(:)],m0',S0),length(w1),length(w0));
+        % Plot distribution image
         %contour(w0,w1,F0)
         imagesc(w0,w1,F0)
         set(gca,'YDir','normal') % unflip y-axis for imagesc
@@ -66,6 +67,7 @@ function update_plot_3_7(n,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w
     currTrial = 1;
     w0 = -1:0.01:1;
     w1 = -1:0.01:1;
+    %{
     % Stores the Gaussian probability values for all w1, w2 in FL
     % rows = length(w2) since w2 represents y-axis
     FL = ones(length(w1),length(w0));
@@ -82,6 +84,21 @@ function update_plot_3_7(n,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w
             FL(i,j) = 1/(2*pi*SL)^(1/2)*exp(-1/(2*SL)*(t(n,currTrial)-mL)^2);
         end
     end
+    %}
+    % Meshgrid to avoid nested for loop
+    % Since w0 is copied over row-wise such that there are length(w1) rows,
+    % w1 represents the y-axis and we don't have to worry about transposing
+    % the data
+    [W0,W1] = meshgrid(w0,w1);
+    phi0_n = 1; % 0th basis function, 1
+    phi1_n = x(n,currTrial); % 1st basis function, x
+    % See P141, 3.10 for following expressions
+    mL = phi0_n*W0 + phi1_n*W1; % mean for one observation
+    SL = beta^(-1); % variance for one observation
+    % Gaussian distribution for single target (P78, 2.42)
+    % We evaluate the probability for all w0, w1 pairs
+    FL = 1/(2*pi*SL)^(1/2)*exp(-1/(2*SL)*(t(n,currTrial)-mL).^2);
+    % Plot distribution image
     imagesc(w0,w1,FL);
     set(gca,'YDir','normal') % unflip y-axis for imagesc
     hold on;
@@ -112,6 +129,7 @@ function update_plot_3_7(n,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w
     w1 = -1:0.01:1;
     [W0,W1] = meshgrid(w0,w1);
     FN = reshape(mvnpdf([W0(:) W1(:)],mN',SN),length(w1),length(w0));
+    % Plot distribution image
     imagesc(w0,w1,FN)
     set(gca,'YDir','normal') % unflip y-axis for imagesc
     hold on;
