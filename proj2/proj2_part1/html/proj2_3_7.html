@@ -1,0 +1,300 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ECE414 Makeene Learning - Project 2</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-09-29"><meta name="DC.source" content="proj2_3_7.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>ECE414 Makeene Learning - Project 2</h1><!--introduction--><pre class="language-matlab">By <span class="string">Jeffrey</span> <span class="string">Shih</span>
+</pre><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Linear Regression, Parameter Distribution - Data Generation</a></li><li><a href="#2">Linear Regression, Parameter Distribution - Estimating Model Parameters</a></li><li><a href="#3">Linear Regression, Parameter Distribution - Plotting Figure 3.7</a></li></ul></div><h2>Linear Regression, Parameter Distribution - Data Generation<a name="1"></a></h2><pre class="codeinput">clc; clear <span class="string">all</span>; close <span class="string">all</span>;
+
+<span class="comment">% Model weights (we want to estimate these)</span>
+w0 = -0.3;
+w1 = 0.5;
+w = [w0 w1];
+
+<span class="comment">% Generate random data from uniform distribution U(x|-1,1) and add noise</span>
+<span class="comment">% We want to see the effect on increasing # of observations N on</span>
+<span class="comment">% the estimation for each of nTrials trials (so the data is N-by-nTrials)</span>
+nTrials = 6;
+N = 100;
+x = rand(N,nTrials)*2-1; <span class="comment">% rand generates number taken uniformly from (0,1)</span>
+                        <span class="comment">% so scale to (0,2), then subtract 1 for (-1,1)</span>
+
+<span class="comment">% Find targets associated with data</span>
+t = linear_model_function(x,w0,w1);
+
+<span class="comment">% Generate Gaussian noise of std. dev 0.2 and add to targets</span>
+sigma = 0.2;
+noise = randn(N,nTrials)*sigma; <span class="comment">% scale standard normal so that std. dev becomes 0.2</span>
+t = t + noise;
+</pre><h2>Linear Regression, Parameter Distribution - Estimating Model Parameters<a name="2"></a></h2><pre class="codeinput"><span class="comment">% Noise parameter</span>
+beta = 1/sigma^2;
+
+<span class="comment">% Hyperparameter for prior</span>
+alpha = 2;
+
+<span class="comment">% Prior mean and variance</span>
+m0 = zeros(length(w),1); <span class="comment">% zero mean</span>
+S0 = alpha^(-1)*eye(length(w)); <span class="comment">% variance for prior is governed by hyperparameter alpha</span>
+
+<span class="comment">% Generate initial estimates based on prior only (zero-mean, std.dev alpha)</span>
+w_est_prior = randn(2,nTrials)*alpha;
+
+<span class="comment">% METHOD 1: Estimate weights for model using posterior means</span>
+<span class="comment">% We look at individual trials for each # of observations</span>
+w_est_matrix = []; <span class="comment">% matrix to store all estimated weights, N*2-by-nTrials</span>
+<span class="keyword">for</span> n = 1:N
+    <span class="comment">% Temporary array to store estimated weights for all trials of the same n</span>
+    w_est_trials = [];
+    <span class="keyword">for</span> nT = 1:nTrials
+        <span class="comment">% Basis functions for the design matrix, in this case 1 and x</span>
+        phi0 = ones(n,1);
+        phi1 = x(1:n,nT);
+        <span class="comment">% Design matrix, see P142 (3.16)</span>
+        PHI = [phi0 phi1];
+        <span class="comment">% Expressions for posterior mean and variance, see P153 (3.50, 3.51)</span>
+        SN = pinv(pinv(S0) + beta*PHI'*PHI);
+        mN = SN*(pinv(S0)*m0 + beta*PHI'*t(1:n,nT)); <span class="comment">% column vector</span>
+        w_est_trials = [w_est_trials mN];
+    <span class="keyword">end</span>
+    <span class="comment">% Examine this matrix at the end to see that as N goes up, estimates</span>
+    <span class="comment">% of a0 and a1 become more accurate</span>
+    w_est_matrix = [w_est_matrix; w_est_trials];
+<span class="keyword">end</span>
+
+<span class="comment">% Lambda is the regularization parameter</span>
+<span class="comment">% See P153, bottom, for how it is defined in this example</span>
+lambda = alpha/beta;
+
+<span class="comment">% METHOD 2: Estimate weights for model using regularized least squares</span>
+<span class="comment">% We look at individual trials for each # of observations</span>
+w_est_matrix_LS = []; <span class="comment">% matrix to store all estimated weights, N*2-by-nTrials</span>
+<span class="keyword">for</span> n = 1:N
+    <span class="comment">% Temporary array to store estimated weights for all trials of the same n</span>
+    w_est_trials = [];
+    <span class="keyword">for</span> nT = 1:nTrials
+        <span class="comment">% Basis functions for the design matrix, in this case 1 and x</span>
+        phi0 = ones(n,1);
+        phi1 = x(1:n,nT);
+        <span class="comment">% Design matrix, see P142 (3.16)</span>
+        PHI = [phi0 phi1];
+        <span class="comment">% Expression for weights, see P145 (3.28)</span>
+        <span class="comment">% Taking the Moore-Penrose pseudoinverse since PHI is not square</span>
+        <span class="comment">% Slice targets such that we're only looking at THIS particular trial</span>
+        w_est = pinv(lambda*eye(length(w))+PHI'*PHI)*PHI'*t(1:n,nT);
+        w_est_trials = [w_est_trials w_est];
+    <span class="keyword">end</span>
+    <span class="comment">% Examine this matrix at the end to see that as N goes up, estimates</span>
+    <span class="comment">% of a0 and a1 become more acurate</span>
+    w_est_matrix_LS = [w_est_matrix_LS; w_est_trials];
+<span class="keyword">end</span>
+
+w_est_matrix;
+w_est_matrix_LS;
+</pre><h2>Linear Regression, Parameter Distribution - Plotting Figure 3.7<a name="3"></a></h2><pre class="codeinput">close <span class="string">all</span>;
+
+<span class="comment">% Initialize plot</span>
+<span class="comment">% We're plotting both n=1 and n=N so that publish displays 2 graphs</span>
+figure;
+update_plot_3_7(N,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w_est_matrix_LS);
+f = figure;
+update_plot_3_7(0,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w_est_matrix_LS);
+
+<span class="comment">% Set up slider used to change n</span>
+slider = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'slider'</span>,<span class="string">'Position'</span>,[10 50 20 340],<span class="keyword">...</span>
+              <span class="string">'value'</span>,0,<span class="string">'min'</span>,0,<span class="string">'max'</span>,N,<span class="string">'SliderStep'</span>,[1/(N-0) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,24,23,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,<span class="string">'0'</span>,<span class="string">'BackgroundColor'</span>,bgcolor);
+slider_label2 = uicontrol(<span class="string">'Parent'</span>,f,<span class="string">'Style'</span>,<span class="string">'text'</span>,<span class="string">'Position'</span>,[10,390,30,23],<span class="keyword">...</span>
+                <span class="string">'String'</span>,num2str(N),<span class="string">'BackgroundColor'</span>,bgcolor);
+
+<span class="comment">% Set slider callback to update plot, need to round the slider value</span>
+<span class="comment">% because it might not be an integer</span>
+slider.Callback = @(es,ed) update_plot_3_7(round(es.Value),N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w_est_matrix_LS);
+</pre><img vspace="5" hspace="5" src="proj2_3_7_01.png" alt=""> <img vspace="5" hspace="5" src="proj2_3_7_02.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%%  ECE414 Makeene Learning - Project 2
+%   By Jeffrey Shih
+
+%% Linear Regression, Parameter Distribution - Data Generation
+
+clc; clear all; close all;
+
+% Model weights (we want to estimate these)
+w0 = -0.3;
+w1 = 0.5;
+w = [w0 w1];
+
+% Generate random data from uniform distribution U(x|-1,1) and add noise
+% We want to see the effect on increasing # of observations N on
+% the estimation for each of nTrials trials (so the data is N-by-nTrials)
+nTrials = 6;
+N = 100;
+x = rand(N,nTrials)*2-1; % rand generates number taken uniformly from (0,1)
+                        % so scale to (0,2), then subtract 1 for (-1,1)
+
+% Find targets associated with data
+t = linear_model_function(x,w0,w1);
+
+% Generate Gaussian noise of std. dev 0.2 and add to targets            
+sigma = 0.2;
+noise = randn(N,nTrials)*sigma; % scale standard normal so that std. dev becomes 0.2
+t = t + noise;
+
+
+%% Linear Regression, Parameter Distribution - Estimating Model Parameters
+
+% Noise parameter
+beta = 1/sigma^2;
+
+% Hyperparameter for prior
+alpha = 2;
+
+% Prior mean and variance
+m0 = zeros(length(w),1); % zero mean
+S0 = alpha^(-1)*eye(length(w)); % variance for prior is governed by hyperparameter alpha
+
+% Generate initial estimates based on prior only (zero-mean, std.dev alpha)
+w_est_prior = randn(2,nTrials)*alpha;
+
+% METHOD 1: Estimate weights for model using posterior means
+% We look at individual trials for each # of observations
+w_est_matrix = []; % matrix to store all estimated weights, N*2-by-nTrials
+for n = 1:N
+    % Temporary array to store estimated weights for all trials of the same n
+    w_est_trials = [];
+    for nT = 1:nTrials
+        % Basis functions for the design matrix, in this case 1 and x
+        phi0 = ones(n,1);
+        phi1 = x(1:n,nT);
+        % Design matrix, see P142 (3.16)
+        PHI = [phi0 phi1];
+        % Expressions for posterior mean and variance, see P153 (3.50, 3.51)
+        SN = pinv(pinv(S0) + beta*PHI'*PHI);
+        mN = SN*(pinv(S0)*m0 + beta*PHI'*t(1:n,nT)); % column vector
+        w_est_trials = [w_est_trials mN];
+    end
+    % Examine this matrix at the end to see that as N goes up, estimates
+    % of a0 and a1 become more accurate
+    w_est_matrix = [w_est_matrix; w_est_trials];
+end
+
+% Lambda is the regularization parameter
+% See P153, bottom, for how it is defined in this example
+lambda = alpha/beta;
+
+% METHOD 2: Estimate weights for model using regularized least squares
+% We look at individual trials for each # of observations
+w_est_matrix_LS = []; % matrix to store all estimated weights, N*2-by-nTrials
+for n = 1:N
+    % Temporary array to store estimated weights for all trials of the same n
+    w_est_trials = [];
+    for nT = 1:nTrials
+        % Basis functions for the design matrix, in this case 1 and x
+        phi0 = ones(n,1);
+        phi1 = x(1:n,nT);
+        % Design matrix, see P142 (3.16)
+        PHI = [phi0 phi1];
+        % Expression for weights, see P145 (3.28)
+        % Taking the Moore-Penrose pseudoinverse since PHI is not square
+        % Slice targets such that we're only looking at THIS particular trial
+        w_est = pinv(lambda*eye(length(w))+PHI'*PHI)*PHI'*t(1:n,nT);
+        w_est_trials = [w_est_trials w_est];
+    end
+    % Examine this matrix at the end to see that as N goes up, estimates
+    % of a0 and a1 become more acurate
+    w_est_matrix_LS = [w_est_matrix_LS; w_est_trials];
+end
+
+w_est_matrix;
+w_est_matrix_LS;
+
+%% Linear Regression, Parameter Distribution - Plotting Figure 3.7
+
+close all;
+
+% Initialize plot
+% We're plotting both n=1 and n=N so that publish displays 2 graphs
+figure;
+update_plot_3_7(N,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w_est_matrix_LS);
+f = figure;
+update_plot_3_7(0,N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w_est_matrix_LS);
+
+% Set up slider used to change n
+slider = uicontrol('Parent',f,'Style','slider','Position',[10 50 20 340],...
+              'value',0,'min',0,'max',N,'SliderStep',[1/(N-0) 1]);
+bgcolor = f.Color;
+slider_label1 = uicontrol('Parent',f,'Style','text','Position',[10,24,23,23],...
+                'String','0','BackgroundColor',bgcolor);
+slider_label2 = uicontrol('Parent',f,'Style','text','Position',[10,390,30,23],...
+                'String',num2str(N),'BackgroundColor',bgcolor);
+
+% Set slider callback to update plot, need to round the slider value
+% because it might not be an integer
+slider.Callback = @(es,ed) update_plot_3_7(round(es.Value),N,nTrials,w,x,t,alpha,beta,w_est_prior,w_est_matrix,w_est_matrix_LS);
+
+##### SOURCE END #####
+--></body></html>
