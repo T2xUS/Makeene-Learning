@@ -65,8 +65,8 @@ function update_plot_3_7(n,N,nSamples,w,x,t,alpha,beta,w_est_prior,w_est_matrix,
     
     subplot(1,3,1)
     % Calculate probability of target for each w0, w1 given new observation
-    w0 = -1:0.01:1;
-    w1 = -1:0.01:1;
+    w0 = -1:0.2:1;
+    w1 = -1:0.2:1;
     % Meshgrid to avoid nested for loop
     % Since w0 is copied over row-wise such that there are length(w1) rows,
     % w1 represents the y-axis and we don't have to worry about transposing
@@ -81,7 +81,8 @@ function update_plot_3_7(n,N,nSamples,w,x,t,alpha,beta,w_est_prior,w_est_matrix,
     SL = beta^(-1);
     % Gaussian distribution for new target (P78, 2.42)
     % We evaluate the probability for all w0, w1 pairs
-    FL = 1/(2*pi*SL)^(1/2)*exp(-1/(2*SL)*(t(n)-mL).^2);
+    FL = 1/(2*pi*SL)^(1/2)*exp(-1/(2*SL)*(t(n)-mL).^2)
+    %FL = normpdf(t(n),mL,sqrt(SL)) # same result, normpdf takes std. dev
     % Plot distribution image
     imagesc(w0,w1,FL);
     set(gca,'YDir','normal') % unflip y-axis for imagesc
