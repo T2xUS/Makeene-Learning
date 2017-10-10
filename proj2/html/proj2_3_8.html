@@ -92,13 +92,6 @@ m0 = zeros(nWeights,1);
 <span class="comment">% Parameters for Gaussian basis functions (see P139, 3.4)</span>
 u = linspace(0,2.5,9); <span class="comment">% locations of basis in input space</span>
 s = 0.2; <span class="comment">% spatial scale of basis</span>
-
-<span class="comment">%{
-</span><span class="comment">% Calculate predictive distributions for increasing # of observations
-</span><span class="comment">for n = 1:N
-</span><span class="comment">end
-</span><span class="comment">n = 10;
-</span><span class="comment">%}</span>
 </pre><h2>Linear Regression, Predictive Distribution - Plotting Figure 3.8<a name="2"></a></h2><pre class="codeinput">close <span class="string">all</span>;
 
 <span class="comment">% Initialize plot</span>
@@ -152,13 +145,6 @@ m0 = zeros(nWeights,1);
 % Parameters for Gaussian basis functions (see P139, 3.4)
 u = linspace(0,2.5,9); % locations of basis in input space
 s = 0.2; % spatial scale of basis
-
-%{
-% Calculate predictive distributions for increasing # of observations
-for n = 1:N
-end
-n = 10;
-%}
 
 %% Linear Regression, Predictive Distribution - Plotting Figure 3.8
 

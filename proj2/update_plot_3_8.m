@@ -65,7 +65,7 @@ function update_plot_3_8(n,N,nWeights,x,t,beta,m0,S0,u,s)
     hold on
 
     % Plot labels
-    title(sprintf('N = %d',n))
+    title(sprintf('n = %d',n))
     xlabel('\it x')
     ylabel('\it t')
     axis([0 1 -1.5 1.5])

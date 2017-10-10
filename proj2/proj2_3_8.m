@@ -26,15 +26,8 @@ S0 = alpha^(-1)*eye(nWeights);
 m0 = zeros(nWeights,1);
 
 % Parameters for Gaussian basis functions (see P139, 3.4)
-u = linspace(0,2.5,9); % locations of basis in input space
+u = linspace(-1,1,9); % locations of basis in input space
 s = 0.2; % spatial scale of basis
-
-%{
-% Calculate predictive distributions for increasing # of observations
-for n = 1:N
-end
-n = 10;
-%}
 
 %% Linear Regression, Predictive Distribution - Plotting Figure 3.8
 
