@@ -137,7 +137,7 @@ def getDataMatrix(filename,balanceOn=False,normalizeOn=False):
             
     return (X,Y)
 
-(X1,Y1) = getKeeneData(500,500)
+(X1,Y1) = getKeeneData(500,750)
 (X2,Y2) = getRandomData(1000)
 (X3,Y3) = getDataMatrix('/haberman.data')
 (X4,Y4) = getDataMatrix('/pid.data')
@@ -197,6 +197,17 @@ def computePredictionStats(Y,Y_predict):
     contingency_table = createContingencyTable(TP,FP,FN,TN)
     return (accuracy,contingency_table)
 
+# Predict Y for class k using X, weights, sigmoid function, and rounding threshold
+# If predicting class 1 (tn = 0), need to invert results of sigmoid
+# Default threshold is 0.5
+def predictY(X,w,threshold,k=0):
+    phi = np.insert(X,0,1,axis=1)
+        # Insert column of 1s at the start of X (index 0) to get design matrix
+    Y_predict = np.greater(sigmoid(phi*w),threshold)
+    if (k == 0):
+        Y_predict = np.logical_not(Y_predict)
+    return Y_predict
+
 # Plot ROC (receiver operating characteristic) curve (TPR VS. FPR)
 # TPR = true positive rate = recall = TP/P = TP/(TP+FN)
     # i.e. proportion of all actual positives that are correctly identified as positive
@@ -214,11 +225,11 @@ def plotROC(X,Y,model):
     for threshold in range(0,100,1):
         
         if model == 'generativeModel':
-            (Y_predict,accuracy) = gaussianGenerativeModel(X,Y,threshold=float(threshold)/100,statsOn=False)
+            (Y_predict,w,accuracy) = gaussianGenerativeModel(X,Y,threshold=float(threshold)/100,statsOn=False)
         elif model == 'logisticRegression':
-            Y_predict = logisticRegression(X,Y,threshold=float(threshold)/100,statsOn=False)
+            (Y_predict,w,accuracy) = logisticRegression(X,Y,threshold=float(threshold)/100,statsOn=False)
         elif model == 'logisticRegression_sklearn':
-            Y_predict = logisticRegression_sklearn(X,Y,threshold=float(threshold)/100,statsOn=False)
+            (Y_predict,w,accuracy) = logisticRegression_sklearn(X,Y,threshold=float(threshold)/100,statsOn=False)
     
         (TP,FP,FN,TN) = computeTestStatistics(Y,Y_predict)
         
@@ -229,6 +240,8 @@ def plotROC(X,Y,model):
         FPRs.append(FPR)
     
     # Plot ROC curve in comparison to TPR = FPR, which is worthless
+    figsize = (8,6)
+    plt.figure(figsize=figsize)
     plt.plot([0,1],[0,1],color='k')
     plt.plot(FPRs,TPRs,color='r')
     plt.title('ROC')
@@ -236,10 +249,22 @@ def plotROC(X,Y,model):
     plt.ylabel('TPR')
     plt.axis([0, 1, 0, 1])
     plt.show()
+    
+# Plot decision boundary
+# Decision: tn = 0 if p(C1|k) or p(C1|phi) = sigmoid(w*x) >= threhsold
+# For threshold = 0.5: sigmoid(w*x) = 1/(1+exp(-w*x) = 0.5 -> exp(-w*x) = 1 -> w*x = 0
+# For arbitrary threshold th: 1/(1+exp(-w*x) = th -> exp(-w*x) = 1/th-1 -> w*x = -ln(1/th-1)
+# 2 features: w0 + w1*x1 + w2*x2 = -ln(1/th-1) -> w2 = (-ln(1/th-1) - w0 - w1*x1)/w2
+def plotDecisionBoundary(x1,w,threshold,color='k'):
+    x2 = np.ravel(float(1)/w[2]*(-np.log(float(1)/threshold-1) - w[0] - w[1]*x1))
+        # ravel so that you can plot both without dimensionality issues
+    plt.plot(x1,x2,color=color)
 
 # For datasets with 2 features only
 # Plot one feature against the other in scatterplot, colored by class
-def plotActualVersusPredicted(X,Y,Y_predict):
+def plotActualVersusPredicted(X,Y,Y_predict,w,threshold=0.5):
+    
+    figsize = (8,6)
     
     # Split data by actual class
     # ASSUMPTION: Class 1: tn = 0, Class 2: tn = 1
@@ -250,14 +275,31 @@ def plotActualVersusPredicted(X,Y,Y_predict):
     X1 = X[class1_indices,:]
     X2 = X[class2_indices,:]
     
+    # Set figure size and get plot axes
+    plt.figure(figsize=figsize)
+    axes = plt.gca()
+        # Using axes, you get can get the x and y-limits of the plot
+        # These limits are used to readjust the plot axes limits after
+        # plotting decision boundary since the line might go out of bounds
+    
     # Plot data according to actual class
     plt.scatter(X1[:,0],X1[:,1],color='r')
     plt.scatter(X2[:,0],X2[:,1],color='b')
+    xlim = axes.get_xlim()
+    ylim = axes.get_ylim()
+    plotDecisionBoundary(axes.get_xlim(),w,threshold,color='k')
     plt.title('Actual Target Values')
     plt.xlabel('X1')
     plt.ylabel('X2')
+    plt.legend(['Class 1 (tn = 0)','Class 2 (tn = 1)', 'Decision Boundary'])
+    plt.axis([xlim[0],xlim[1],ylim[0],ylim[1]])
+        # Readjust plot axes limits
     plt.show()
     
+    # Set figure size and get plot axes
+    plt.figure(figsize=figsize)
+    axes = plt.gca()
+        
     # Split data by predicted class
     class1_indices_pred = np.where(Y_predict == 0)
     class2_indices_pred = np.where(Y_predict == 1)
@@ -269,9 +311,14 @@ def plotActualVersusPredicted(X,Y,Y_predict):
     # Plot data according to predicted class
     plt.scatter(X1_pred[:,0],X1_pred[:,1],color='r')
     plt.scatter(X2_pred[:,0],X2_pred[:,1],color='b')
+    xlim = axes.get_xlim()
+    ylim = axes.get_ylim()
+    plotDecisionBoundary(axes.get_xlim(),w,threshold,color='k')
     plt.title('Predicted Target Values')
     plt.xlabel('X1')
     plt.ylabel('X2')
+    plt.axis([xlim[0],xlim[1],ylim[0],ylim[1]])
+    plt.legend(['Class 1 (tn = 0)','Class 2 (tn = 1)', 'Decision Boundary'])
     plt.show()
 
 
@@ -352,7 +399,6 @@ def gaussianGenerativeModel(X,Y,threshold=0.5,statsOn=True,debugOn=False):
     w1_0 = -float(1)/2*np.transpose(mu1)*np.linalg.inv(cov)*mu1 +             -float(1)/2*np.transpose(mu2)*np.linalg.inv(cov)*mu2 +             np.log(pi1/pi2)
     w2_0 = -float(1)/2*np.transpose(mu2)*np.linalg.inv(cov)*mu2 +             -float(1)/2*np.transpose(mu1)*np.linalg.inv(cov)*mu1 +             np.log(pi2/pi1)
         # Optionally cast these to float because result is a scalar nested within 1x1 matrices
-
     
     # See P199, 4.69-4.70 for weight formulas for K classes
     # Don't think we should use these for binary even though it should generalize
@@ -364,32 +410,31 @@ def gaussianGenerativeModel(X,Y,threshold=0.5,statsOn=True,debugOn=False):
     w2_0 = -float(1)/2*np.transpose(mu2)*np.linalg.inv(cov)*mu2 + \
             np.log(pi2)
     """
-
-    # Obtain parameters to input into sigmoid (ak)
+    
+    # (Don't need this) Obtain parameters to input into sigmoid (ak)
     a1 = np.transpose(w1)*np.transpose(X) + w1_0
     a2 = np.transpose(w2)*np.transpose(X) + w2_0
     a1 = np.transpose(a1)
     a2 = np.transpose(a2)
-        # transpose to get column vectors
+    
+    # Concatenate weights into one column vector
+    w1 = np.concatenate((w1_0,w1),axis=0)
+    w2 = np.concatenate((w2_0,w2),axis=0)
 
     # Make predictions for using training set to check for error
-    # Use a2 so that P(C2|x) will round up to 1 if tn == 1, since C2 is 1
-    # Otherwise you'd have to flip values if you round sigmoid(a1), since C1 is 0
-    y = sigmoid(a2)
-    #Y_predict = np.round(y)
-        # Simple rounding of sigmoid
-    Y_predict = np.greater(y,threshold)
-        # Set rounding threshold
-        
+    # k=0: Class 1
+    #Y_predict = predictY(X,w1,threshold,k=0) # doens't work
+    Y_predict = predictY(X,w2,threshold,k=1)
+    
     # Calculate prediction statistics
     (accuracy,contingency_table) = computePredictionStats(Y,Y_predict)
 
     # Print prediction statistics
     if statsOn:
-        """
         print 'threshold: ', threshold
         print 'Number of 0\'s (class 1): ', Y.shape[0]-np.sum(Y)
         print 'Number of 1\'s (class 2): ', np.sum(Y)
+        """
         print 'mu1:\t', np.transpose(mu1)
         print 'mu2:\t', np.transpose(mu2)
         print 'cov:\t', cov
@@ -398,7 +443,7 @@ def gaussianGenerativeModel(X,Y,threshold=0.5,statsOn=True,debugOn=False):
         print 'w2:\t', np.transpose(w2)
         print 'bias:', w1_0, w2_0
         """
-        print ("Accuracy: %-.1f%%") % (accuracy)
+        print ("Accuracy: %-.1f%%\n") % (accuracy)
         print contingency_table
 
     # Print debug stats
@@ -410,44 +455,44 @@ def gaussianGenerativeModel(X,Y,threshold=0.5,statsOn=True,debugOn=False):
             print ("%-10d %-15.5f %-15.5f %-15.5f %-10.1s %-10.1s %6s") % \
                     (i+1,a2[i],np.exp(-a2[i]),sigmoid(a2[i]),int(Y[i]),int(Y_predict[i]),bool(Y[i]==Y_predict[i]))
                 
-    return Y_predict, accuracy
+    return (Y_predict,w2,accuracy)
 
 # Go through thresholds, test the threshold that gives max accuracy
 # Return prediction with max accuracy
 def testThresholds(X,Y,debugOn=False):
     accuracy_list = []
     for threshold in range(0,10,1):
-        (Y_tmp,accuracy) = gaussianGenerativeModel(X,Y,threshold=float(threshold)/10,statsOn=False)
+        (Y_tmp,w_tmp,accuracy) = gaussianGenerativeModel(X,Y,threshold=float(threshold)/10,statsOn=False)
         accuracy_list.append(accuracy)
     max_accuracy = max(accuracy_list)
-    best_threshold = float(accuracy_list.index(max_accuracy))/10
+    threshold_best = float(accuracy_list.index(max_accuracy))/10
     #print accuracy_list
-    (Y_best,accuracy_best) = gaussianGenerativeModel(X,Y,threshold=best_threshold,debugOn=debugOn)
-    return (Y_best, accuracy_best)
+    (Y_best,w_best,accuracy_best) = gaussianGenerativeModel(X,Y,threshold=threshold_best,debugOn=debugOn)
+    return (Y_best,w_best,threshold_best,accuracy_best)
 
 print 'Keene\'s Dataset (2 features):'
-#(Y1_predict,accuracy1) = gaussianGenerativeModel(X1,Y1,debugOn=True)
-(Y1_predict,accuracy1) = testThresholds(X1,Y1,debugOn=True)
+#(Y1_predict,w1,accuracy1) = gaussianGenerativeModel(X1,Y1,debugOn=False)
+(Y1_predict,w1,threshold1,accuracy1) = testThresholds(X1,Y1,debugOn=False)
 plotROC(X1,Y1,model='generativeModel')
-plotActualVersusPredicted(X1,Y1,Y1_predict)
+plotActualVersusPredicted(X1,Y1,Y1_predict,w1,threshold=threshold1)#0.5)
 print
 
 print 'a > b Dataset (2 features):'
-#(Y2_predict,accuracy2) = gaussianGenerativeModel(X2,Y2)
-(Y2_predict,accuracy2) = testThresholds(X2,Y2)
+#(Y2_predict,w2,accuracy2) = gaussianGenerativeModel(X2,Y2)
+(Y2_predict,w2,threshold2,accuracy2) = testThresholds(X2,Y2)
 plotROC(X2,Y2,model='generativeModel')
-plotActualVersusPredicted(X2,Y2,Y2_predict)
+plotActualVersusPredicted(X2,Y2,Y2_predict,w2,threshold=threshold2)#0.5)
 print
 
 print 'Haberman Dataset (3 features):'
-#(Y3_predict,accuracy3) = gaussianGenerativeModel(X3,Y3)
-(Y3_predict,accuracy3) = testThresholds(X3,Y3)
+#(Y3_predict,w3,accuracy3) = gaussianGenerativeModel(X3,Y3)
+(Y3_predict,w3,threshold3,accuracy3) = testThresholds(X3,Y3)
 plotROC(X3,Y3,model='generativeModel')
 print
 
 print 'PID Dataset (8 features):'
-#(Y4_predict,accuracy4) = gaussianGenerativeModel(X4,Y4)
-(Y4_predict,accuracy4) = testThresholds(X4,Y4)
+#(Y4_predict,w4,accuracy4) = gaussianGenerativeModel(X4,Y4)
+(Y4_predict,w4,threshold4,accuracy4) = testThresholds(X4,Y4)
 plotROC(X4,Y4,model='generativeModel')
 print
 
@@ -498,10 +543,11 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
         # w: (nFeats+1)-by-1
         #w_new = w - np.linalg.inv(phi.T*R*phi)*phi.T*(y-t) # same result
         z = phi*w - np.linalg.inv(R)*(y-t)
-        w_new = np.linalg.inv(phi.T*R*phi)*phi.T*R*z
+        if reg == 'none':
+            w_new = np.linalg.inv(phi.T*R*phi)*phi.T*R*z
         
         # L1 Regularization using LARS
-        if reg == 'L1':
+        elif reg == 'L1':
             continue
         
         # Calculate new squared error between new and old w, then replace old w with new
@@ -535,38 +581,38 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
         
         currIter += 1
         
-    # Round probability, then invert because probability of class 1 is probability of target being 0
+    # Round probability, then invert because we're predicting class 1, tn = 0
     Y_predict = np.logical_not(np.greater(y,threshold))
     
     # Compute prediction statistics
     (accuracy,contingency_table) = computePredictionStats(Y,Y_predict)
     
     if statsOn:
-        print ("Accuracy: %-.1f%%") % (accuracy)
+        print ("Accuracy: %-.1f%%\n") % (accuracy)
         print contingency_table
     
-    return Y_predict
+    return (Y_predict,w,accuracy)
 
 
 print 'Keene\'s Dataset (2 features):'
-Y1_predict = logisticRegression(X1,Y1)
+(Y1_predict,w1,accuracy1) = logisticRegression(X1,Y1,reg='none')
 plotROC(X1,Y1,model='logisticRegression')
-plotActualVersusPredicted(X1,Y1,Y1_predict)
+plotActualVersusPredicted(X1,Y1,Y1_predict,w1,threshold=0.5)
 print
 
 print 'a > b Dataset (2 features):'
-Y2_predict = logisticRegression(X2,Y2)
+(Y2_predict,w2,accuracy2) = logisticRegression(X2,Y2,reg='none')
 plotROC(X2,Y2,model='logisticRegression')
-plotActualVersusPredicted(X2,Y2,Y2_predict)
+plotActualVersusPredicted(X2,Y2,Y2_predict,w2,threshold=0.5)
 print
 
 print 'Haberman Dataset (3 features):'
-Y3_predict = logisticRegression(X3,Y3)
+(Y3_predict,w3,accuracy3) = logisticRegression(X3,Y3,reg='none')
 plotROC(X3,Y3,model='logisticRegression')
 print
 
 print 'PID Dataset (8 features):'
-Y4_predict = logisticRegression(X4,Y4)
+(Y4_predict,w4,accuracy4) = logisticRegression(X4,Y4,reg='none')
 plotROC(X4,Y4,model='logisticRegression')
 print
 
@@ -576,7 +622,8 @@ print
 # Logistic regression using scikit-learn's libraries
 def logisticRegression_sklearn(X,Y,threshold=0.5,statsOn=True):
     
-    clf = LogisticRegression(penalty='l1',fit_intercept=True).fit(X,np.ravel(Y))
+    # Turn off regularization by making C really high
+    clf = LogisticRegression(penalty='l1',C=1000,fit_intercept=True).fit(X,np.ravel(Y))
         # default tolerance: tol=0.0001
         # need to ravel Y because function likes to accept a 1D flattened array
     
@@ -587,38 +634,37 @@ def logisticRegression_sklearn(X,Y,threshold=0.5,statsOn=True):
         # bias is inserted at beginning of weight vector (index 0)
     
     # Predict targets
-    phi = np.insert(X, 0, 1, axis=1)
-        # Insert column of 1s at the start of X to get design matrix
-    Y_predict = np.greater(sigmoid(phi*w),threshold)
+    # sklearn predicts tn = 1 (Class 2 in our case), so don't invert results
+    Y_predict = predictY(X,w,threshold,k=1)
     
     # Compute prediction statistics
     (accuracy,contingency_table) = computePredictionStats(Y,Y_predict)
     
     if statsOn:
-        print ("Accuracy: %-.1f%%") % (accuracy)
+        print ("Accuracy: %-.1f%%\n") % (accuracy)
         print contingency_table
     
-    return Y_predict
+    return (Y_predict,w,accuracy)
 
 print 'Keene\'s Dataset (2 features):'
-Y1_predict = logisticRegression_sklearn(X1,Y1)
+(Y1_predict,w1,accuracy1) = logisticRegression_sklearn(X1,Y1)
 plotROC(X1,Y1,model='logisticRegression_sklearn')
-plotActualVersusPredicted(X1,Y1,Y1_predict)
+plotActualVersusPredicted(X1,Y1,Y1_predict,w1,threshold=0.5)
 print
 
 print 'a > b Dataset (2 features):'
-Y2_predict = logisticRegression_sklearn(X2,Y2)
+(Y2_predict,w2,accuracy2) = logisticRegression_sklearn(X2,Y2)
 plotROC(X2,Y2,model='logisticRegression_sklearn')
-plotActualVersusPredicted(X2,Y2,Y2_predict)
+plotActualVersusPredicted(X2,Y2,Y2_predict,w2,threshold=0.5)
 print
 
 print 'Haberman Dataset (3 features):'
-Y3_predict = logisticRegression_sklearn(X3,Y3)
+(Y3_predict,w3,accuracy3) = logisticRegression_sklearn(X3,Y3)
 plotROC(X3,Y3,model='logisticRegression_sklearn')
 print
 
 print 'PID Dataset (8 features):'
-Y4_predict = logisticRegression_sklearn(X4,Y4)
+(Y4_predict,w4,accuracy4) = logisticRegression_sklearn(X4,Y4)
 plotROC(X4,Y4,model='logisticRegression_sklearn')
 print
 
