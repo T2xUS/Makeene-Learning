@@ -37,6 +37,10 @@ close all;
 % We're plotting both n=1 and n=N so that publish displays 2 graphs
 figure;
 update_plot_3_8(N,N,nWeights,x,t,beta,m0,S0,u,s)
+figure;
+update_plot_3_8(5,N,nWeights,x,t,beta,m0,S0,u,s)
+figure;
+update_plot_3_8(1,N,nWeights,x,t,beta,m0,S0,u,s)
 f = figure;
 update_plot_3_8(0,N,nWeights,x,t,beta,m0,S0,u,s)
 
