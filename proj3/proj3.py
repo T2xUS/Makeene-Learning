@@ -199,7 +199,6 @@ def computePredictionStats(Y,Y_predict):
 
 # Predict Y for class k using X, weights, sigmoid function, and rounding threshold
 # If predicting class 1 (tn = 0), need to invert results of sigmoid
-# Default threshold is 0.5
 def predictY(X,w,threshold,k=0):
     phi = np.insert(X,0,1,axis=1)
         # Insert column of 1s at the start of X (index 0) to get design matrix
@@ -250,8 +249,8 @@ def plotROC(X,Y,model):
     plt.axis([0, 1, 0, 1])
     plt.show()
     
-# Plot decision boundary
-# Decision: tn = 0 if p(C1|k) or p(C1|phi) = sigmoid(w*x) >= threhsold
+# Plot decision boundary for 2 classes by calculating feature 1 given feature 2
+# Decision: tn = 0 if p(C1|k) or p(C1|phi) = sigmoid(w*x) >= threshold
 # For threshold = 0.5: sigmoid(w*x) = 1/(1+exp(-w*x) = 0.5 -> exp(-w*x) = 1 -> w*x = 0
 # For arbitrary threshold th: 1/(1+exp(-w*x) = th -> exp(-w*x) = 1/th-1 -> w*x = -ln(1/th-1)
 # 2 features: w0 + w1*x1 + w2*x2 = -ln(1/th-1) -> w2 = (-ln(1/th-1) - w0 - w1*x1)/w2
@@ -333,6 +332,7 @@ def plotActualVersusPredicted(X,Y,Y_predict,w,threshold=0.5):
 
 # Functions to perform maximum likelihood estimates for parameters
 # ASSUMPTION: Class 1: tn = 0, Class 2: tn = 1 (the book has it flipped, P200)
+
 # 4.75: Mean for class k
 def classMean(X,Y,k):
     class_indices = np.where(Y == k)
@@ -411,7 +411,7 @@ def gaussianGenerativeModel(X,Y,threshold=0.5,statsOn=True,debugOn=False):
             np.log(pi2)
     """
     
-    # (Don't need this) Obtain parameters to input into sigmoid (ak)
+    # (Don't need these, keep just for debug) Obtain parameters to input into sigmoid (ak)
     a1 = np.transpose(w1)*np.transpose(X) + w1_0
     a2 = np.transpose(w2)*np.transpose(X) + w2_0
     a1 = np.transpose(a1)
@@ -422,8 +422,9 @@ def gaussianGenerativeModel(X,Y,threshold=0.5,statsOn=True,debugOn=False):
     w2 = np.concatenate((w2_0,w2),axis=0)
 
     # Make predictions for using training set to check for error
-    # k=0: Class 1
-    #Y_predict = predictY(X,w1,threshold,k=0) # doens't work
+    # Predict class 2 (tn = 1) so that probabilities don't need to be inverted
+    # Anyhow, for some reason predicting class 1 (tn = 0) gives strange results, will come back later
+    #Y_predict = predictY(X,w1,threshold,k=0) # doesn't work
     Y_predict = predictY(X,w2,threshold,k=1)
     
     # Calculate prediction statistics
@@ -458,7 +459,7 @@ def gaussianGenerativeModel(X,Y,threshold=0.5,statsOn=True,debugOn=False):
     return (Y_predict,w2,accuracy)
 
 # Go through thresholds, test the threshold that gives max accuracy
-# Return prediction with max accuracy
+# Return prediction, weights with max accuracy
 def testThresholds(X,Y,debugOn=False):
     accuracy_list = []
     for threshold in range(0,10,1):
@@ -527,7 +528,6 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
     nIter = 500
     w_error = float('inf')
         # initialize weight error to infinity
-    w_error_threshold = 0.01
     while currIter < nIter:
                 
         # Recalculate weight matrix R (P207, 4.98) for every iteration
@@ -546,7 +546,7 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
         if reg == 'none':
             w_new = np.linalg.inv(phi.T*R*phi)*phi.T*R*z
         
-        # L1 Regularization using LARS
+        # L1 Regularization using LARS, not yet implemented
         elif reg == 'L1':
             continue
         
@@ -558,18 +558,18 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
         # Stop condition
         # Checking the weight errors throughout the iterations, I have found that the weight
         # errors themselves are converging rather than the weights, so the previous
-        # stop condition that terminates the loop if the weight error is below a threshold won't
-        # necessarily work. Thus, the new stop condition is that if the current error
-        # exceeds the previous weight error (meaning there is a bigger gap between weights at 
+        # stop condition that terminates the loop if the weight error is below a certain number
+        # won't necessarily work. Thus, the new stop condition is that if the current error
+        # exceeds the previous weight error (meaning that there is a bigger gap between weights at 
         # this iteration compared to the previous iteration), the loop terminates. Since the
         # weight error is initialized at infinity, and everything is less than infinity, at least
-        # one complete iteration is guaranteed so there won't be an incomplete solution.
+        # one complete iteration will be guaranteed so that there won't be an incomplete solution.
         if w_error_new > w_error:
             if statsOn:
                 print ("IRLS stopped at iteration %d, (w_err_old,w_err_new) = (%.3f,%.3f)") % (currIter+1,w_error,w_error_new)
             break
         
-        # Replace weights and weight error
+        # Replace old weights and weight error if stop condition is not satisfied
         w = w_new
         w_error = w_error_new
         
@@ -577,11 +577,11 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
         y = sigmoid(phi*w)
             # Assuming that w is nFeatures-by-1 and design matrix is nObservations-by-(nFeatures+1),
             # the book's formula on P206, 4.87 (w.T*phi) doesn't work, should be
-            # design_matrix*w = (w.T*phi.T).T to achieve a y that is nObservations-by-1
+            # (w.T*phi.T).T = phi*w to achieve a y that is nObservations-by-1
         
         currIter += 1
         
-    # Round probability, then invert because we're predicting class 1, tn = 0
+    # Make prediction, invert the rounded sigmoid because we're predicting class 1, tn = 0
     Y_predict = np.logical_not(np.greater(y,threshold))
     
     # Compute prediction statistics
