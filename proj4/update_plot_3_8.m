@@ -42,9 +42,8 @@ function update_plot_3_8(n,nWeights,x,t,beta,m0,S0,u,s,theta)
     % Populate design matrix by evaluating all basis functions for each xn
     % that we have already seen (see P142, 3.16)
     % We use this to find the posterior parameters below
-    PHI = [];
     for m = 1:nWeights
-        PHI = [PHI gaussian_basis_function(x,u(m),s)];
+        PHI(:,m) = gaussian_basis_function(x,u(m),s); % PHI(:,m) ensures that columns are stacked next to each other
     end
     
     % Posterior parameters (see P153, 3.50, 3.51)
@@ -53,24 +52,19 @@ function update_plot_3_8(n,nWeights,x,t,beta,m0,S0,u,s,theta)
     
     % New design matrix for each possible value of x_truth, used to form
     % our distribution curve
-    PHI_truth = [];
     for m = 1:nWeights
-        PHI_truth = [PHI_truth gaussian_basis_function(x_truth,u(m),s)];
+        PHI_truth(:,m) = gaussian_basis_function(x_truth,u(m),s);
     end
     
     % Predictive distribution parameters (see P156, 3.58, 3.59)
     % Calculate mean and variance for each point in input x_truth for
     % continuous looking graph
-    %mP = [];
-    SP = [];
     for i = 1:length(x_truth)
         phi_x = PHI_truth(i,:)'; % P146, phi(x) is an M-dim COLUMN vector with elements
                                 % phi_j(x), so we're just looking at the basis
                                 % function evaluated for one observation
-        %mP_i = mN'*phi_x;
-        SP_i = 1/beta + phi_x'*SN*phi_x;
-        %mP = [mP; mP_i];
-        SP = [SP; SP_i];
+        %mP_i(i,:) = mN'*phi_x;
+        SP(i,:) = 1/beta + phi_x'*SN*phi_x; % SP(i,:) ensures that rows are stacked below each other to column vec
     end
     % Can also do mP as follows:
     mP = (mN'*PHI_truth')'; % transpose again to make column vector
@@ -91,16 +85,13 @@ function update_plot_3_8(n,nWeights,x,t,beta,m0,S0,u,s,theta)
     % See P307-308, 6.65, 6.66, 6.67
     for i = 1:length(x_truth)
         for j = 1:length(x)
-            k(j) = kernel_function(x(j),x_truth(i),theta);
+            k(j,:) = kernel_function(x(j),x_truth(i),theta); % ensures that k is column vector
         end
-        k = k(:); % ensure that k is a column vector
         c = kernel_function(x_truth(i),x_truth(i),theta) + beta^(-1);
         C_Nplus1 = [C_N, k; k', c];
-        m_Nplus1(i) = k'*(C_N\t); % use C_N\t instead of inv(C_N)*t, faster
-        S_Nplus1(i) = c-k'*(C_N\k); % matrix multiplication is associative, so do division first
+        m_Nplus1(i,:) = k'*(C_N\t); % use C_N\t instead of inv(C_N)*t, faster
+        S_Nplus1(i,:) = c-k'*(C_N\k); % matrix multiplication is associative, so do division first
     end
-    m_Nplus1 = m_Nplus1(:); % ensure that these are column vectors
-    S_Nplus1 = S_Nplus1(:);
     
     % Plot figures
 
