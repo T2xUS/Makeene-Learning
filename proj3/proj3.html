@@ -12006,7 +12006,7 @@ Number of data samples in data set 4:	768
     
         <span class="p">(</span><span class="n">TP</span><span class="p">,</span><span class="n">FP</span><span class="p">,</span><span class="n">FN</span><span class="p">,</span><span class="n">TN</span><span class="p">)</span> <span class="o">=</span> <span class="n">computeTestStatistics</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="n">Y_predict</span><span class="p">)</span>
         
-        <span class="n">TPR</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">TP</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">TP</span><span class="o">+</span><span class="n">FN</span><span class="p">)</span> <span class="c1"># FUCK</span>
+        <span class="n">TPR</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">TP</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">TP</span><span class="o">+</span><span class="n">FN</span><span class="p">)</span> <span class="c1"># messed up here</span>
         <span class="n">FPR</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">FP</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">FP</span><span class="o">+</span><span class="n">TN</span><span class="p">)</span>
         
         <span class="n">TPRs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TPR</span><span class="p">)</span>

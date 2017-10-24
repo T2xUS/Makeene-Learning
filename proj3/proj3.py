@@ -232,7 +232,7 @@ def plotROC(X,Y,model):
     
         (TP,FP,FN,TN) = computeTestStatistics(Y,Y_predict)
         
-        TPR = float(TP)/(TP+FN) # FUCK
+        TPR = float(TP)/(TP+FN) # messed up here
         FPR = float(FP)/(FP+TN)
         
         TPRs.append(TPR)
