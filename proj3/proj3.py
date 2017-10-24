@@ -232,7 +232,7 @@ def plotROC(X,Y,model):
     
         (TP,FP,FN,TN) = computeTestStatistics(Y,Y_predict)
         
-        TPR = float(TP)/(TP+TN)
+        TPR = float(TP)/(TP+FN) # FUCK
         FPR = float(FP)/(FP+TN)
         
         TPRs.append(TPR)
@@ -290,7 +290,7 @@ def plotActualVersusPredicted(X,Y,Y_predict,w,threshold=0.5):
     plt.title('Actual Target Values')
     plt.xlabel('X1')
     plt.ylabel('X2')
-    plt.legend(['Class 1 (tn = 0)','Class 2 (tn = 1)', 'Decision Boundary'])
+    plt.legend(['Decision Boundary','Class 1 (tn = 0)','Class 2 (tn = 1)'])
     plt.axis([xlim[0],xlim[1],ylim[0],ylim[1]])
         # Readjust plot axes limits
     plt.show()
@@ -317,7 +317,7 @@ def plotActualVersusPredicted(X,Y,Y_predict,w,threshold=0.5):
     plt.xlabel('X1')
     plt.ylabel('X2')
     plt.axis([xlim[0],xlim[1],ylim[0],ylim[1]])
-    plt.legend(['Class 1 (tn = 0)','Class 2 (tn = 1)', 'Decision Boundary'])
+    plt.legend(['Decision Boundary','Class 1 (tn = 0)','Class 2 (tn = 1)'])
     plt.show()
 
 
@@ -498,12 +498,15 @@ plotROC(X4,Y4,model='generativeModel')
 print
 
 
-# In[4]:
+# In[12]:
 
 # Logistic regression using IRLS optimization and L1 penalty (P235, 4.3.2-4.3.3)
 # According to textbook, this predicts class 1 (tn = 1) (class 2 is tn = 0)
-# However, for some reason, when I run the algo it's as if class 1 is tn = 0, lol w/e
 def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
+    
+    # Check if matrix is invertible (i.e. if it's full rank)
+    def is_invertible(a):
+        return a.shape[0] == a.shape[1] and np.linalg.matrix_rank(a) == a.shape[0]
     
     nObservations = X.shape[0]
     nFeatures = X.shape[1]
@@ -522,19 +525,25 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
     
     # Initialize predictions to 0's, since weights are 0 (w.T*phi = 0*phi = 0)
     y = np.asmatrix(np.zeros((nObservations,1)))
+    
+    # Initialize R matrix as identity
+    # I SET THIS TO NP.ONES AT FIRST THAT'S WHY THE WEIGHTS WEREN'T CONVERGING LOL
+    R = np.asmatrix(np.eye(nObservations))
 
     # Iterative reweighted least squares
     currIter = 0
     nIter = 500
     w_error = float('inf')
+    w_error_threshold = 0.001
         # initialize weight error to infinity
     while currIter < nIter:
-                
-        # Recalculate weight matrix R (P207, 4.98) for every iteration
-        R = np.asmatrix(np.ones((nObservations,nObservations)))
-        for n in range(0,nObservations):
-            R[n,n] = y[n]*(1-y[n])
         
+        # First check if R is invertible, if not, we will run into a runtime issue
+        # So if R is not invertible just break
+        if is_invertible(R) == False:
+            print ("IRLS stopped at iteration %d because R is singular, w_err = %.5f") % (currIter+1,w_error)
+            break;
+                
         # Newton-Raphson update equation (P208, 4.99-4.100)
         # phi: nObs-by-(nFeats+1), R: nObs-by-nObs
         # result of inv: (nFeats+1)-by-(nFeats+1)
@@ -550,39 +559,34 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
         elif reg == 'L1':
             continue
         
-        # Calculate new squared error between new and old w, then replace old w with new
-        w_error_new = np.sum(np.square(w_new-w))
-        #print w_new,'\n',w,'\n',w_new-w,'\n',np.square(w_new-w), np.sum(np.square(w_new-w))
+        # Calculate squared error between new and old w
+        w_error = np.sum(np.square(w_new-w)) # np.linalg.norm(w_new-w,ord=2)
         #print 'Iteration:', currIter, 'w_error', w_error
         
-        # Stop condition
-        # Checking the weight errors throughout the iterations, I have found that the weight
-        # errors themselves are converging rather than the weights, so the previous
-        # stop condition that terminates the loop if the weight error is below a certain number
-        # won't necessarily work. Thus, the new stop condition is that if the current error
-        # exceeds the previous weight error (meaning that there is a bigger gap between weights at 
-        # this iteration compared to the previous iteration), the loop terminates. Since the
-        # weight error is initialized at infinity, and everything is less than infinity, at least
-        # one complete iteration will be guaranteed so that there won't be an incomplete solution.
-        if w_error_new > w_error:
+        # Stop condition: when difference between old and new weights is small enough
+        if w_error < w_error_threshold:
             if statsOn:
-                print ("IRLS stopped at iteration %d, (w_err_old,w_err_new) = (%.3f,%.3f)") % (currIter+1,w_error,w_error_new)
+                print ("IRLS stopped at iteration %d, w_err = %.5f") % (currIter+1,w_error)
             break
         
         # Replace old weights and weight error if stop condition is not satisfied
         w = w_new
-        w_error = w_error_new
         
         # Make new prediction for y
         y = sigmoid(phi*w)
             # Assuming that w is nFeatures-by-1 and design matrix is nObservations-by-(nFeatures+1),
             # the book's formula on P206, 4.87 (w.T*phi) doesn't work, should be
             # (w.T*phi.T).T = phi*w to achieve a y that is nObservations-by-1
+            
+        # Recalculate weight matrix R (P207, 4.98) after finding new y's
+        R = np.asmatrix(np.eye(nObservations))
+        for n in range(0,nObservations):
+            R[n,n] = y[n]*(1-y[n])
         
         currIter += 1
         
-    # Make prediction, invert the rounded sigmoid because we're predicting class 1, tn = 0
-    Y_predict = np.logical_not(np.greater(y,threshold))
+    # Make prediction, don't invert the rounded sigmoid because we're predicting class 1, tn = 1
+    Y_predict = np.greater(y,threshold)
     
     # Compute prediction statistics
     (accuracy,contingency_table) = computePredictionStats(Y,Y_predict)
@@ -596,28 +600,28 @@ def logisticRegression(X,Y,reg='none',threshold=0.5,statsOn=True):
 
 print 'Keene\'s Dataset (2 features):'
 (Y1_predict,w1,accuracy1) = logisticRegression(X1,Y1,reg='none')
-plotROC(X1,Y1,model='logisticRegression')
+#plotROC(X1,Y1,model='logisticRegression')
 plotActualVersusPredicted(X1,Y1,Y1_predict,w1,threshold=0.5)
 print
 
 print 'a > b Dataset (2 features):'
 (Y2_predict,w2,accuracy2) = logisticRegression(X2,Y2,reg='none')
-plotROC(X2,Y2,model='logisticRegression')
+#plotROC(X2,Y2,model='logisticRegression')
 plotActualVersusPredicted(X2,Y2,Y2_predict,w2,threshold=0.5)
 print
 
 print 'Haberman Dataset (3 features):'
 (Y3_predict,w3,accuracy3) = logisticRegression(X3,Y3,reg='none')
-plotROC(X3,Y3,model='logisticRegression')
+#plotROC(X3,Y3,model='logisticRegression')
 print
 
 print 'PID Dataset (8 features):'
 (Y4_predict,w4,accuracy4) = logisticRegression(X4,Y4,reg='none')
-plotROC(X4,Y4,model='logisticRegression')
+#plotROC(X4,Y4,model='logisticRegression')
 print
 
 
-# In[5]:
+# In[9]:
 
 # Logistic regression using scikit-learn's libraries
 def logisticRegression_sklearn(X,Y,threshold=0.5,statsOn=True):
