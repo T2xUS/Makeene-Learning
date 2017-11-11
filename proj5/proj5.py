@@ -76,7 +76,7 @@ def getSpecialData():
 def generateClusters(K, sizes, r=3):
     
     if K > len(sizes):
-        print('Specified K %d exceeds size of list %d' % (K, len(sizes)))
+        print('Specified K (%d) exceeds size of list (%d).' % (K, len(sizes)))
         return
     
     # Parameters to generate data with using for Gaussian
@@ -294,8 +294,11 @@ def plotHistogram(X, mu, var, histogram_scale, frame):
         x = np.linspace(np.asscalar(mu[k]-s*sigma_k),np.asscalar(mu[k]+s*sigma_k),n)
         #x = np.linspace(-50,50,n) # hard code range for now
         # Scale up normals (scale factor depends on size of clusters)
-        rgb = 'r' if (k == 0) else ('g' if (k == 1) else 'b');
-        plt.plot(x,histogram_scale*mlab.normpdf(x,np.asscalar(mu[k]),np.asscalar(sigma_k)),color=rgb)        
+        if M == 3:
+            rgb = 'r' if (k == 0) else ('g' if (k == 1) else 'b');
+            plt.plot(x,histogram_scale*mlab.normpdf(x,np.asscalar(mu[k]),np.asscalar(sigma_k)),color=rgb)    
+        else:
+            plt.plot(x,histogram_scale*mlab.normpdf(x,np.asscalar(mu[k]),np.asscalar(sigma_k)))   
 
     # Plot labels
     plt.title('Histogram Plot with EM Distribution')
@@ -338,6 +341,7 @@ def EM(X, K=2, histogram_scale=20):
     dirname = "anim/M=%d/K=%d" % (M,K)
     try:
         os.makedirs(dirname)
+        print ('Making new directory %s...') % (dirname)
     except:
         print ('Directory %s already exists, clearing files...') % (dirname)
         # If directory already exists, clear all files in there
@@ -358,6 +362,10 @@ def EM(X, K=2, histogram_scale=20):
         # Then, nothing will change because responsibility is always equal to pi (denom cancels out with numer, leaving pi)
     cov = [npm.eye(M) for k in range(K)]
         # all covariances are identity for now
+        # results in NaN values for normpdf for M = 1, K >= 4, so will change it for M = 1 only
+    if M == 1:
+        cov = [K for k in range(K)]
+        # cov=2 works for K=5, apparently need higher covariances for higher K?
     pi = [float(1)/K for k in range(K)]
         # make pi's all the same for now, bad thing about this is that we can't use pi's as convergence check
         # NOTE: can't initialize to 0 or denom will be 0 when calculating responsibility
@@ -573,6 +581,17 @@ print '----------------------------------------------------------'
 print ('1-Feature Dataset')
 print '----------------------------------------------------------\n'
 
+K=2
+print '----------------------------------------------------------'
+print ('K = %d' % (K))
+print '----------------------------------------------------------\n'
+size = 50
+X = generate1DClusters(K,[size,size])
+M = X.shape[1]
+(gamma,mu,cov,pi,log_likelihood,frames) = EM(X,K=K,histogram_scale=size)
+generateAnimation(M,K,delay)
+print
+
 K=3
 print '----------------------------------------------------------'
 print ('K = %d' % (K))
@@ -582,7 +601,23 @@ X = generate1DClusters(K,[size,size,size])
 M = X.shape[1]
 (gamma,mu,cov,pi,log_likelihood,frames) = EM(X,K=K,histogram_scale=size)
 generateAnimation(M,K,delay)
+print
+
+K=5
+print '----------------------------------------------------------'
+print ('K = %d' % (K))
+print '----------------------------------------------------------\n'
+size = 20
+X = generate1DClusters(K,[size,size,size,size,size])
+M = X.shape[1]
+(gamma,mu,cov,pi,log_likelihood,frames) = EM(X,K=K,histogram_scale=size)
+generateAnimation(M,K,delay)
 print 
+
+
+# In[8]:
+
+### ~~~~~ Runtime (cont'd) ~~~~~ ###
 
 print '----------------------------------------------------------'
 print ('2-Feature Datasets')
@@ -619,7 +654,23 @@ generateAnimation(M,K,delay)
 print
 
 
-# In[8]:
+# In[11]:
+
+### ~~~~~ Runtime (cont'd) ~~~~~ ###
+
+K=7
+print '----------------------------------------------------------'
+print ('K = %d' % (K))
+print '----------------------------------------------------------\n'
+size = 100
+X = generateClusters(K,[size,size,size,size,size,size,size],r=7)
+M = X.shape[1]
+(gamma,mu,cov,pi,log_likelihood,frames) = EM(X,K=K)
+generateAnimation(M,K,delay)
+print
+
+
+# In[ ]:
 
 # If there's an issue with the gif, use this to regenerate
 delay = 200 # This should be 2 seconds but it's pretty fast... w/e
@@ -629,7 +680,7 @@ generateAnimation(2,3,delay)
 generateAnimation(2,5,delay)
 
 
-# In[9]:
+# In[12]:
 
 # Delete extraneous files after gif is generated
 cleanup()
